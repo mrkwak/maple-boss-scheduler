@@ -1,0 +1,88 @@
+'use client';
+
+import { useCallback, useEffect, useState } from 'react';
+import { api, loadMe, saveMe } from '@/lib/client';
+import MemberPicker from './MemberPicker';
+import CharacterCard from './CharacterCard';
+import RegisterForm from './RegisterForm';
+
+export default function App({ week, month }) {
+  const [members, setMembers] = useState(null);
+  const [characters, setCharacters] = useState([]);
+  const [meId, setMeId] = useState(null);
+  const [error, setError] = useState('');
+
+  const reload = useCallback(async () => {
+    try {
+      const [m, c] = await Promise.all([api('/api/members'), api('/api/characters')]);
+      setMembers(m.members);
+      setCharacters(c.characters);
+      setError('');
+    } catch (e) {
+      setError(e.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    setMeId(loadMe());
+    reload();
+  }, [reload]);
+
+  const choose = (id) => {
+    saveMe(id);
+    setMeId(id);
+  };
+
+  if (members == null) return <main>{error ? <p className="error">{error}</p> : <p className="muted">불러오는 중…</p>}</main>;
+
+  const me = members.find((m) => m.id === meId);
+  if (!me) {
+    return (
+      <main>
+        <h1>보스 파티</h1>
+        <MemberPicker members={members} onChoose={choose} onCreated={reload} />
+      </main>
+    );
+  }
+
+  const mine = characters.filter((c) => c.memberId === me.id);
+  const others = members
+    .filter((m) => m.id !== me.id)
+    .map((m) => ({ member: m, chars: characters.filter((c) => c.memberId === m.id) }));
+
+  return (
+    <main>
+      <div className="top">
+        <h1>보스 파티</h1>
+        <div className="row muted">
+          <span>
+            {me.name} · 주차 {week} · {month}
+          </span>
+          <button className="link" onClick={() => choose(null)}>
+            바꾸기
+          </button>
+        </div>
+      </div>
+      {error && <p className="error">{error}</p>}
+
+      <h2>내 캐릭터</h2>
+      <RegisterForm memberId={me.id} onDone={reload} />
+      {mine.length === 0 && <p className="muted">등록된 캐릭터가 없습니다.</p>}
+      {mine.map((c) => (
+        <CharacterCard key={c.id} character={c} editable onChanged={reload} />
+      ))}
+
+      <h2>다른 사람</h2>
+      {others.length === 0 && <p className="muted">아직 다른 사람이 없습니다.</p>}
+      {others.map(({ member, chars }) => (
+        <div key={member.id}>
+          <p className="muted">{member.name}</p>
+          {chars.length === 0 && <p className="muted">캐릭터 없음</p>}
+          {chars.map((c) => (
+            <CharacterCard key={c.id} character={c} />
+          ))}
+        </div>
+      ))}
+    </main>
+  );
+}

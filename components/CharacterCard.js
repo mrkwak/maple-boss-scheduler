@@ -1,0 +1,69 @@
+'use client';
+
+import { useState } from 'react';
+import { api, formatDate, formatSpec } from '@/lib/client';
+import { bossLabel } from '@/lib/bosses';
+import SpecForm from './SpecForm';
+
+export default function CharacterCard({ character: c, editable = false, onChanged }) {
+  const [editing, setEditing] = useState(false);
+  const [error, setError] = useState('');
+
+  const remove = async () => {
+    if (!window.confirm(`${c.name} 캐릭터를 삭제할까요? 목표와 코스 배정도 함께 지워집니다.`)) return;
+    try {
+      await api(`/api/characters/${c.id}`, { method: 'DELETE' });
+      await onChanged();
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+
+  const rates = Object.entries(c.bossRates || {});
+
+  return (
+    <div className="card">
+      <div className="row">
+        <div className="grow">
+          <strong>{c.name}</strong>{' '}
+          <span className="muted">
+            {[c.className, c.level && `Lv.${c.level}`, c.world].filter(Boolean).join(' · ')}
+          </span>
+        </div>
+        <a href={c.sourceUrl} target="_blank" rel="noreferrer" className="muted">
+          환산주스탯
+        </a>
+      </div>
+      <div className="row">
+        <span className="spec">헥사 {formatSpec(c.hexaSpec)}</span>
+        {c.specUpdatedAt && <span className="muted">{formatDate(c.specUpdatedAt)} 갱신</span>}
+        {c.specStale && <span className="badge warn">오래됨</span>}
+        {c.hexaSpec == null && <span className="badge warn">환산 입력 필요</span>}
+      </div>
+      {rates.length > 0 && (
+        <div className="rates">
+          {rates.map(([k, v]) => `${bossLabel(k)} ${v}%`).join(' · ')}
+        </div>
+      )}
+      {editable && !editing && (
+        <div className="row" style={{ marginTop: 8 }}>
+          <button onClick={() => setEditing(true)}>환산 입력</button>
+          <button className="danger" onClick={remove}>
+            삭제
+          </button>
+        </div>
+      )}
+      {editing && (
+        <SpecForm
+          character={c}
+          onCancel={() => setEditing(false)}
+          onSaved={async () => {
+            setEditing(false);
+            await onChanged();
+          }}
+        />
+      )}
+      {error && <p className="error">{error}</p>}
+    </div>
+  );
+}
