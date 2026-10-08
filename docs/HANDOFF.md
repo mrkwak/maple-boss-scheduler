@@ -1,9 +1,9 @@
 # 핸드오프 — maple-boss-scheduler
 
-최종 갱신: 2026-10-08 (2차) · 단계: M0 직전 (문서 단계, 코드 없음)
+최종 갱신: 2026-10-08 (3차) · 단계: M0 완료 → M1 시작 전
 
 ## 1. 한 줄 요약
-메이플(KMS) 지인 그룹용 "보스 코스(체인) 단위 파티 구성 + 시간 약속" 웹앱. 기획·결정 문서 작성 완료, 코드 없음. maplescouter 약관상 자동 수집이 금지돼 **환산은 수동 입력**으로 확정. 다음은 스캐폴드(M0).
+메이플(KMS) 지인 그룹용 "보스 코스(체인) 단위 파티 구성 + 시간 약속" 웹앱. 지표는 **헥사 환산 + 보스별 배율(%)**. maplescouter 운영자에게 사용 허락 문의 중이며 **허락 가정으로 개발**(조회 구현만 답변 후). M0(기본 구조·핵심 로직·테스트 41개) 완료, 다음은 M1 화면.
 
 ## 2. 현재 위치
 - 리포: `mrkwak/maple-boss-scheduler`
@@ -17,8 +17,9 @@
 | 접근 | 비밀 링크만, 로그인 없음, 멤버는 "나는 누구?" 선택 | ADR-0008 (사용자 결정) |
 | 저장소 | Google 스프레드시트 1개, `lib/db` 인터페이스로 교체 가능 | ADR-0007 (사용자 요구 반영, 제안) |
 | 파티 단위 | 보스 코스(체인)에 파티 고정, 초대·수락 없음(추가 즉시 확정) | ADR-0004, 사용자 결정 |
-| 환산 | 수동 입력 + maplescouter 링크. 자동 수집 안 함 | ADR-0002 (약관 제15조) |
-| 보스 컷표 | 시트 `boss_cuts` 탭, 사용자가 직접 설정 | ADR-0009 (제안) |
+| 스펙 지표 | 헥사 환산 + 보스별 배율(%). 최초 등록 시 1회 자동 조회(허락 후), 그 전엔 직접 입력 | ADR-0002 (사용자 결정) |
+| 줄 세우기·묶기 | 보스 배율 순 정렬, 파티 배율 = 파티원 배율 합(≥100% 가능) [가정] | ADR-0009 |
+| 컷표 | 배율 없을 때 `헥사 환산 ÷ base_spec`으로 환산. 시트 `boss_cuts` 탭 | ADR-0009 (제안) |
 | 가능 시간 | 주차별로 새로 입력 | 사용자 결정 |
 | 월간 보스 | 주간과 별도 기간(`2026-10`)으로 처리 | ADR-0005, 사용자 결정 |
 | ocid | 닉네임 바뀌어도 유지 → 캐릭터 식별 기준 | 사용자 확인 |
@@ -40,7 +41,13 @@
 - 같은 사람 캐릭 2개 한 코스 허용 여부
 - Supabase 무료 플랜 비활성 일시정지(약 7일)는 서드파티 자료 기준, 공식 문서 미확인
 
-**참고**: 이 세션에서 maplescouter 페이지를 curl로 몇 차례 조회함(메인, 파티 보스컷, 보스정보, 약관, robots.txt). 약관 확인 후에는 접속하지 않음. 앞으로도 코드·세션에서 maplescouter 자동 접근 금지.
+**참고**: 세션에서 maplescouter 페이지를 curl로 몇 차례 조회함(메인, 파티 보스컷, 보스정보, 약관, robots.txt). 약관 확인 후에는 접속하지 않음. **운영자 허락 전에는 코드·세션에서 maplescouter 자동 접근 금지** (내부 요청 추정·분석 포함).
+
+### maplescouter 문의 (2026-10-08)
+- 받는 곳: `maplescouter@gmail.com`, 제목 "환산 주스탯 수집 가능 여부 문의 드립니다."
+- 내용: 지인 5명·인당 1~3캐릭, 헥사 환산·보스 배율로 파티 묶기, 비공개·비상업, 출처 표기 가능
+- Gmail 연결 권한 부족으로 Claude가 발송 못 함 → 사용자가 직접 발송
+- 답변 오면: 허락 범위·방식에 맞춰 `lib/spec/provider.js`의 `maplescouterProvider` 구현, ADR-0002 갱신
 
 ## 5. 블로커
 | 블로커 | 해결 방법 | 담당 |
@@ -49,18 +56,28 @@
 | Google 서비스 계정 | Google Cloud 프로젝트 → Sheets API 사용 설정 → 서비스 계정 키(JSON) 발급 → 스프레드시트를 서비스 계정 이메일에 편집자로 공유 | 사용자 |
 
 ## 6. 다음 작업 (순서)
-1. [사용자] ADR-0007(스프레드시트), ADR-0009(컷표 방식) 확인 → 승인 또는 수정
-2. [사용자] 넥슨 API 키, Google 서비스 계정·스프레드시트 준비
-3. [M0] Next.js 스캐폴드, 비밀 링크 미들웨어, `lib/db` 시트 어댑터 + 테스트, CI (로아 `ci.yml` 재사용)
-4. [M1] 멤버 선택/추가, 캐릭터 등록(넥슨 API), 환산 수동 입력
-5. [M2] `lib/bosses.js`, `lib/week.js`(주간/월간), 목표 UI, 컷표 판정
+1. [사용자] maplescouter 문의 메일 발송 → 답변 공유
+2. [사용자] ADR-0007(스프레드시트), ADR-0009(배율 합 판정) 확인
+3. [사용자] 넥슨 API 키, Google 서비스 계정·스프레드시트 준비 (탭 이름·헤더는 `lib/db/schema.js`)
+4. [M1] 멤버 선택/추가, 캐릭터 등록 API·화면(넥슨 API), 헥사 환산·배율 입력
+5. [M2] 목표 UI(주간·월간), 배율 줄 세우기 화면, 컷표 읽기
 6. 이후 PLAN.md 마일스톤 M3~M6
 7. [정리] `loa-guild-raid`의 임시 폴더/브랜치 정리 (사용자 확인 후)
+
+## M0에서 만든 것 (2026-10-08)
+- Next.js 14 App Router(JS), Jest(next/jest), ESLint, GitHub Actions CI (lint → test → build)
+- `middleware.js`: `?k=<ACCESS_KEY>` → HttpOnly 쿠키 발급 후 주소에서 키 제거, 그 외 404. `robots.txt` 전체 차단 + noindex
+- `lib/db/`: 스프레드시트 어댑터(헤더 이름으로 컬럼 매칭, 15초 캐시) + 메모리 어댑터. `SHEET_ID` 없으면 메모리(운영에선 오류)
+- `lib/bosses.js`: 보스·난이도 18종 (maplescouter 파티 보스컷 화면 목록 기준). `maxParty`는 미확인이라 null
+- `lib/week.js`, `lib/rates.js`, `lib/matching.js`, `lib/rules.js`, `lib/spec/provider.js`, `lib/nexon.js` + 단위 테스트
+- 확인: `npm test` 41개 통과, `npm run lint` 경고 없음, `npm run build` 성공, `next start`에서 키 없음/틀림 404 · 맞는 키 307+쿠키 · 쿠키로 200 확인
+- 미확인: 실제 Google 시트·넥슨 API 연동(키 없음), Vercel 배포
 
 ## 7. 환경변수 (예정)
 | 이름 | 위치 | 용도 |
 |---|---|---|
 | `ACCESS_KEY` | Vercel | 비밀 링크 키 |
+| `SPEC_PROVIDER` | Vercel | `manual`(기본) / `maplescouter`(허락·구현 후) |
 | `NEXON_API_KEY` | Vercel | 넥슨 Open API (서버 전용) |
 | `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY` | Vercel | 스프레드시트 접근 (서버 전용) |
 | `SHEET_ID` | Vercel | 스프레드시트 ID |
