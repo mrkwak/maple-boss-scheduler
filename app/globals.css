@@ -18,8 +18,9 @@
   --radius: 16px;
   --font-title: var(--font-jua), system-ui, sans-serif;
 }
+/* 다크: 기기 설정을 따르되, 배너의 테마 버튼으로 라이트/다크 고정 가능 (data-theme) */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #141a2b;
     --bg-deco: #1b2340;
     --card: #1f2740;
@@ -36,6 +37,23 @@
     --warn: #f0b44a;
     --shadow: 0 2px 0 #10152a, 0 6px 16px rgba(0, 0, 0, 0.3);
   }
+}
+:root[data-theme='dark'] {
+  --bg: #141a2b;
+  --bg-deco: #1b2340;
+  --card: #1f2740;
+  --card-soft: #263052;
+  --text: #f3ead9;
+  --muted: #a8a3b8;
+  --line: #34406a;
+  --accent: #ff9f43;
+  --accent-strong: #ffb366;
+  --accent-soft: #3c3150;
+  --gold: #f2c75c;
+  --ok: #4cc47e;
+  --danger: #ff6b63;
+  --warn: #f0b44a;
+  --shadow: 0 2px 0 #10152a, 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 * { box-sizing: border-box; }
@@ -334,3 +352,38 @@ button.hero { width: 100%; min-height: 72px; font-family: var(--font-title); fon
 .board-table td.cell-party { background: var(--accent-soft); color: var(--accent-strong); }
 .board-table td.cell-cleared { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); }
 button.link.danger { color: var(--danger); }
+
+/* 테마 버튼 */
+.theme-btn { border: none; background: rgba(255, 255, 255, 0.22); color: #fff; padding: 4px 10px; border-radius: 999px; font-size: 13px; box-shadow: none; }
+
+/* 매칭: 인원 고르기, 합류 후보 */
+.size-buttons { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.size-btn { min-height: 46px; font-size: 16px; background: var(--card-soft); }
+.size-btn.on { background: var(--accent); border-color: var(--accent-strong); color: #fff; box-shadow: 0 2px 0 var(--accent-strong); }
+.party-options { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.option { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; font-weight: 400; padding: 10px 12px; background: var(--card-soft); }
+.option.on { border-color: var(--accent); background: var(--accent-soft); }
+.radio { width: 20px; height: 20px; flex: none; border-radius: 50%; border: 2px solid var(--line); }
+.option.on .radio { border: 6px solid var(--accent); }
+
+/* 일정: 모집 중 / 시간 미정 / 확정 */
+.sched-group { margin-bottom: 22px; }
+.sched-head { font-family: var(--font-title); font-weight: 400; font-size: 18px; margin: 0 0 10px; display: flex; align-items: center; gap: 6px; }
+.sched-head .count { font-family: inherit; font-size: 13px; background: var(--card-soft); color: var(--muted); border-radius: 999px; padding: 0 8px; }
+.clear-progress { margin-left: auto; font-size: 14px; color: var(--ok); }
+.sched-date { font-size: 16px; }
+.party.recruiting { border-left-color: var(--gold); border-style: dashed; border-left-style: solid; }
+.party.cleared { opacity: 0.75; }
+.fill { font-weight: 700; color: var(--accent-strong); }
+.fill-bar { height: 6px; border-radius: 999px; background: var(--card-soft); overflow: hidden; margin: 6px 0; }
+.fill-bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--gold), var(--accent)); }
+.clear-btn { min-height: 40px; padding: 6px 12px; font-size: 14px; border-radius: 999px; }
+.clear-btn.on { background: var(--ok); border-color: var(--ok); color: #fff; }
+.party .big.full { margin-top: 10px; }
+.time-picker { margin-top: 8px; }
+
+/* 현황판 칸 */
+.board-table td.cell-recruiting { background: color-mix(in srgb, var(--gold) 22%, transparent); color: var(--warn); }
+.board-table td:has(.cell-btn) { padding: 0; }
+.cell-btn { width: 100%; height: 100%; min-height: 44px; border: none; background: transparent; color: inherit; padding: 6px 4px; border-radius: 8px; box-shadow: none; }
+.cell-btn small { display: block; font-weight: 400; font-size: 11px; }

@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { api } from '@/lib/client';
-import { DAYS, dayLabel } from '@/lib/slots';
+import { DAYS } from '@/lib/slots';
 import { rangesToSlots, slotsToRanges } from '@/lib/hopeTime';
+import { splitDay } from '../TimePicker';
 import Shell from './Shell';
 
 const DEFAULT = { from: '21:00', to: '00:00' };
@@ -19,12 +20,6 @@ function HourSelect({ value, onChange, label }) {
       ))}
     </select>
   );
-}
-
-// '10/8(목)' → { wd: '목', date: '10/8' }
-export function splitDay(week, day) {
-  const m = /^(.+)\((.)\)$/.exec(dayLabel(week, day));
-  return m ? { wd: m[2], date: m[1] } : { wd: '', date: dayLabel(week, day) };
 }
 
 // 4단계: 요일 누르고 희망 시간(시작~끝) 입력. 요일당 한 구간

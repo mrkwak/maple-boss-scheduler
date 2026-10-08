@@ -7,13 +7,16 @@ import { buildBoard, CELL } from '@/lib/board';
 import Shell from './Shell';
 
 // 1단계: 내 캐릭터 고르기 또는 새로 등록
-// 이번 주 상태 한 줄: 미신청 / 미정 N / 파티 N
+// 이번 주 상태 한 줄: 미신청 / 미정 N · 모집 N · 파티 N
 function statusOf(board, id) {
   const cells = Object.values(board.cells[id] || {});
   if (!cells.length) return { text: '미신청', cls: '' };
-  const pending = cells.filter((c) => c.state === CELL.GOAL).length;
-  const fixed = cells.length - pending;
-  return pending ? { text: `미정 ${pending}${fixed ? ` · 파티 ${fixed}` : ''}`, cls: 'warn' } : { text: `파티 ${fixed} 확정`, cls: 'ok' };
+  const count = (st) => cells.filter((c) => c.state === st).length;
+  const pending = count(CELL.GOAL);
+  const recruiting = count(CELL.RECRUITING);
+  const fixed = cells.length - pending - recruiting;
+  const text = [pending && `미정 ${pending}`, recruiting && `모집 ${recruiting}`, fixed && `파티 ${fixed}`].filter(Boolean).join(' · ');
+  return { text, cls: pending ? 'warn' : recruiting ? '' : 'ok' };
 }
 
 export default function StepCharacter({ me, characters, goals, courses, ctx, onPicked, reload }) {

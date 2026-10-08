@@ -1,7 +1,7 @@
 // 신청 단계 공통 틀: 진행 표시 + 제목 + 본문 + 하단 고정 버튼
 export const STEPS = ['캐릭터', '보스', '환산', '희망 시간', '매칭'];
 
-export default function Shell({ step, title, hint, children, onBack, next, error }) {
+export default function Shell({ step, title, hint, children, onBack, backLabel = '이전', next, error }) {
   return (
     <section className="wiz">
       <ol className="wiz-progress" aria-label={`${step + 1}/${STEPS.length}단계`}>
@@ -20,7 +20,7 @@ export default function Shell({ step, title, hint, children, onBack, next, error
         <div className="wiz-nav">
           {onBack ? (
             <button type="button" className="big ghost" onClick={onBack} disabled={next?.busy}>
-              이전
+              {backLabel}
             </button>
           ) : (
             <span />

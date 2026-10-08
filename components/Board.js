@@ -10,7 +10,7 @@ import BossName from './BossName';
 const shortWhen = (iso) =>
   new Date(iso).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false });
 
-const CELL_TEXT = { [CELL.GOAL]: '미정', [CELL.PARTY]: '확정', [CELL.CLEARED]: '클리어' };
+const CELL_TEXT = { [CELL.GOAL]: '미정', [CELL.RECRUITING]: '모집 중', [CELL.PARTY]: '확정', [CELL.CLEARED]: '✓ 클리어' };
 
 // 내 캐릭터 현황판: 캐릭터 × 보스, 전체 지난주 복사, 시간 겹침 경고
 export default function Board({ chars, goals, courses, characters, onChanged }) {
@@ -38,6 +38,20 @@ export default function Board({ chars, goals, courses, characters, onChanged }) 
     setBusy(false);
   };
 
+  // 확정·클리어 칸을 누르면 클리어 켜기/끄기 (파티 단위)
+  const toggleClear = async (cell, bossKey) => {
+    setBusy(true);
+    try {
+      await api(`/api/courses/${cell.course.id}/clear`, { method: 'PATCH', body: { bossKey, cleared: !cell.step.cleared } });
+      await onChanged();
+    } catch (e) {
+      setMessage(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const clickable = (cell) => cell && (cell.state === CELL.PARTY || cell.state === CELL.CLEARED);
+
   if (!chars.length) return null;
 
   return (
@@ -49,6 +63,7 @@ export default function Board({ chars, goals, courses, characters, onChanged }) 
         </button>
       </div>
       {message && <p className="muted">{message}</p>}
+      <p className="muted">확정 칸을 누르면 클리어로 바뀌어요.</p>
       {myConflicts.length > 0 && <p className="warn-box">⚠️ 같은 시간대에 내 캐릭 둘이 들어가 있어요: {myConflicts.join(', ')}</p>}
       {board.bossKeys.length === 0 ? (
         <p className="muted">이번 주 목표가 없어요. 신청 탭에서 보스를 골라 주세요.</p>
@@ -73,8 +88,21 @@ export default function Board({ chars, goals, courses, characters, onChanged }) 
                     const cell = board.cells[c.id][k];
                     return (
                       <td key={c.id} className={cell ? `cell-${cell.state}` : ''} title={cell?.course?.startAt ? formatWhen(cell.course.startAt) : undefined}>
-                        {cell ? CELL_TEXT[cell.state] : ''}
-                        {cell?.state === CELL.PARTY && cell.course.startAt && <small>{shortWhen(cell.course.startAt)}</small>}
+                        {clickable(cell) ? (
+                          <button type="button" className="cell-btn" disabled={busy} onClick={() => toggleClear(cell, k)} aria-label={`${c.name} 클리어 표시`}>
+                            {CELL_TEXT[cell.state]}
+                            {cell.state === CELL.PARTY && <small>{cell.course.startAt ? shortWhen(cell.course.startAt) : '시간 미정'}</small>}
+                          </button>
+                        ) : (
+                          <>
+                            {cell ? CELL_TEXT[cell.state] : ''}
+                            {cell?.state === CELL.RECRUITING && (
+                              <small>
+                                {cell.course.characterIds.length}/{cell.course.partySize}
+                              </small>
+                            )}
+                          </>
+                        )}
                       </td>
                     );
                   })}

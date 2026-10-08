@@ -59,4 +59,10 @@ describe('buildBoard', () => {
     expect(board.cells.b1).toBeUndefined();
     expect(pendingCount(board, 'a1')).toBe(1);
   });
+
+  test('모집 중 파티는 recruiting', () => {
+    const cs = [{ ...course('c1', null, ['a1'], ['swoo:extreme']), partySize: 3 }];
+    const board = buildBoard(chars.slice(0, 1), [], cs);
+    expect(board.cells.a1['swoo:extreme'].state).toBe(CELL.RECRUITING);
+  });
 });

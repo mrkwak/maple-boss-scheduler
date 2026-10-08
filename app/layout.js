@@ -12,9 +12,15 @@ export const metadata = {
 
 export const viewport = { width: 'device-width', initialScale: 1, themeColor: '#f08a24' };
 
+// 첫 화면 깜빡임 없이 저장된 테마 적용 (components/ThemeToggle.js와 같은 키)
+const themeScript = `try{var t=localStorage.getItem('mbs_theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}`;
+
 export default function RootLayout({ children }) {
   return (
-    <html lang="ko" className={jua.variable}>
+    <html lang="ko" className={jua.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>{children}</body>
     </html>
   );

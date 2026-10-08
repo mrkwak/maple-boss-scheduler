@@ -10,6 +10,7 @@ import Board from './Board';
 import Schedule from './Schedule';
 import Tabs from './Tabs';
 import Wizard from './wizard/Wizard';
+import ThemeToggle from './ThemeToggle';
 
 const TABS = [
   { id: 'apply', label: '신청', icon: '✍️' },
@@ -168,6 +169,7 @@ function Banner({ children }) {
       <h1>
         <span aria-hidden>🍁</span> 보스 파티
       </h1>
+      <ThemeToggle />
       {children}
     </header>
   );

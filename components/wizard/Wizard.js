@@ -11,7 +11,7 @@ import StepMatch from './StepMatch';
 export default function Wizard({ me, characters, members, goals, courses, availability, ctx, week, reload, onShowSchedule }) {
   const [step, setStep] = useState(0);
   const [charId, setCharId] = useState(null);
-  const [done, setDone] = useState(null); // { name, saved }
+  const [done, setDone] = useState(null); // { name, joined, created, timed }
   const [doneIds, setDoneIds] = useState([]);
   const character = characters.find((c) => c.id === charId);
 
@@ -37,8 +37,13 @@ export default function Wizard({ me, characters, members, goals, courses, availa
         <div className="done-icon" aria-hidden>
           🎉
         </div>
-        <h2 className="wiz-title">{done.saved ? `${done.name} 파티 ${done.saved}개 확정!` : `${done.name} 신청 완료`}</h2>
-        <p className="wiz-hint">{done.saved ? '일정 탭에서 확인할 수 있어요.' : '같이 갈 사람이 생기면 다시 매칭해 보세요.'}</p>
+        <h2 className="wiz-title">{done.name} 신청 완료!</h2>
+        <p className="wiz-hint">
+          {[done.joined && `합류 ${done.joined}`, done.created && `새 모집 ${done.created}`, done.timed && `시간 확정 ${done.timed}`].filter(Boolean).join(' · ') ||
+            '저장한 파티는 없어요.'}
+          <br />
+          모집 중인 파티는 다른 사람이 들어오면 다 차요. 일정 탭에서 확인하세요.
+        </p>
         <div className="done-actions">
           {rest.length > 0 && (
             <button type="button" className="big primary full" onClick={reset}>
@@ -71,10 +76,10 @@ export default function Wizard({ me, characters, members, goals, courses, availa
   }
 
   const common = { character, ctx };
-  const finish = async (count) => {
+  const finish = async (summary) => {
     await reload();
     setDoneIds((ids) => [...new Set([...ids, character.id])]);
-    setDone({ name: character.name, saved: count });
+    setDone({ name: character.name, ...summary });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -97,7 +102,6 @@ export default function Wizard({ me, characters, members, goals, courses, availa
       availability={availability}
       week={week}
       onBack={back(3)}
-      onReset={() => finish(0)}
       onFinished={finish}
     />
   );
