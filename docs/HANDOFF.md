@@ -39,6 +39,11 @@
 | maplescouter / 넥슨 API 접속 차단 | Claude 세션 환경 설정 → Network access → Allowed domains에 `maplescouter.com`, `open.api.nexon.com` 추가 ("Allow package managers" 체크 유지). 또는 로컬 PC에서 F12 확인 후 결과 공유 | 사용자 |
 | 넥슨 API 키 | openapi.nexon.com에서 앱 등록 후 키 발급 | 사용자 |
 
+### 접속 시도 기록 (2026-10-08)
+- 세션 안에서 curl, WebFetch, headless Chromium 모두 `maplescouter.com`, `open.api.nexon.com` 접속 실패 (프록시 CONNECT 403 / `ERR_TUNNEL_CONNECTION_FAILED`)
+- 사용자가 허용 도메인 설정을 바꾼 뒤에도 같은 세션에서는 계속 차단됨 → 이미 떠 있는 세션에는 반영 안 되는 것으로 추정 (미확인)
+- **다음 세션 시작 시 첫 작업**: 위 두 도메인 접속 확인 → 되면 ADR-0002 S1 체크리스트 진행. 안 되면 사용자에게 F12 Network 결과(요청 URL + Response) 공유 요청
+
 ## 6. 다음 작업 (순서)
 1. [사용자] 네트워크 허용 도메인 추가 + 넥슨 API 키 발급
 2. [S1] maplescouter 수집 방식 판정 → ADR-0002 갱신 (체크리스트는 ADR-0002 하단)
