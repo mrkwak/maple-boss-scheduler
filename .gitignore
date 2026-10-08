@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+coverage/
+.env
+.env*.local
+*.log
+.vercel
+
+# 사용자 데이터 (maplescouter 화면에서 역산한 값 등, 공개 저장소에 올리지 않음)
+data/*.local.json
