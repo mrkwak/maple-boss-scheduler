@@ -57,3 +57,5 @@ a { color: var(--accent); }
 .rate.ok { color: #2f9e5b; }
 .rate.tight { color: var(--warn); }
 .rate.no { color: var(--danger); }
+.filepick { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px dashed var(--accent); border-radius: 8px; color: var(--accent); cursor: pointer; }
+.filepick input { display: none; }

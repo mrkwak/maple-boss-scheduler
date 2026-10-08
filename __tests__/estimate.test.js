@@ -55,3 +55,21 @@ test('컷표에 적은 값이 역산값보다 우선', () => {
   });
   expect(baseOf('seren:extreme', ctx)).toEqual({ base: 70000, source: 'table' });
 });
+
+test('직업 보정: 렌선남아 실제 값 — 집사0(아란) 기준값으로 계산하면 낮게 나오던 것을 보정', () => {
+  const cuts = [
+    { bossKey: 'swoo:extreme', baseSpec: 57304 },
+    { bossKey: 'seren:extreme', baseSpec: 195474 },
+    { bossKey: 'kaling:normal', baseSpec: 69649 },
+  ];
+  // 렌선남아 화면 값 (2026-10-08 사용자 저장 파일): 헥사 76,918, 익스 스우 153.6%, 익스 세렌 44.41%
+  const ren = { id: 'r', className: '렌', hexaSpec: 76918, bossRates: { 'swoo:extreme': 153.6, 'seren:extreme': 44.41 } };
+  const ren2 = { id: 'r2', className: '렌', hexaSpec: 76918, bossRates: {} };
+  const aran = { id: 'a', className: '아란', hexaSpec: 69452, bossRates: {} };
+  const ctx = makeRateContext({ cuts, characters: [ren, ren2, aran] });
+  expect(ctx.classFactors['렌'].factor).toBeCloseTo(1.1, 1);
+  // 직접 값이 없는 노말 카링: 보정 없으면 110.4%, 화면 값은 124.9%
+  expect(rateOf(ren2, 'kaling:normal', ctx).value).toBeGreaterThan(118);
+  // 보정 계수 없는 직업은 그대로
+  expect(rateOf(aran, 'kaling:normal', ctx).value).toBeCloseTo(99.7, 1);
+});

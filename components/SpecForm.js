@@ -14,6 +14,23 @@ export default function SpecForm({ character, onCancel, onSaved }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
+  const importFile = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setBusy(true);
+    setError('');
+    try {
+      const html = await file.text();
+      await api(`/api/characters/${character.id}/import`, { method: 'POST', body: { html } });
+      await onSaved();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const setRate = (i, patch) => setRates(rates.map((r, j) => (j === i ? { ...r, ...patch } : r)));
   const used = new Set(rates.map((r) => r.key));
   const nextKey = BOSS_KEYS.find((k) => !used.has(k));
@@ -35,6 +52,13 @@ export default function SpecForm({ character, onCancel, onSaved }) {
 
   return (
     <form onSubmit={save} style={{ marginTop: 8 }}>
+      <label className="filepick">
+        <span>환산주스탯 저장 파일로 가져오기</span>
+        <input type="file" accept=".html,.htm,text/html" onChange={importFile} disabled={busy} />
+      </label>
+      <p className="muted" style={{ marginTop: 4 }}>
+        환산주스탯에서 이 캐릭터의 효율·보스컷 페이지를 열고 Ctrl+S(다른 이름으로 저장)한 파일을 고르세요. 헥사환산과 보스 배율이 한 번에 들어갑니다.
+      </p>
       <div className="row">
         <label className="grow">
           <span className="muted">헥사 환산</span>

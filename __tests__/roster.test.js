@@ -1,6 +1,6 @@
 import { createMemoryAdapter } from '@/lib/db/memory';
 import {
-  createMember, listMembers, registerCharacter, updateSpec, removeCharacter, listCharacters, UserError,
+  createMember, listMembers, registerCharacter, updateSpec, removeCharacter, listCharacters, UserError, importSpecPage,
 } from '@/lib/services/roster';
 import { manualProvider } from '@/lib/spec/provider';
 
@@ -126,5 +126,30 @@ describe('환산 입력·삭제', () => {
     expect(await db.list('characters')).toEqual([]);
     expect(await db.list('goals')).toEqual([]);
     expect(await db.list('course_members')).toEqual([]);
+  });
+});
+
+describe('저장 파일 가져오기', () => {
+  const page = (name, hexa, rates = '') =>
+    `<title>${name} | 효율∙보스컷 - 환산주스탯</title><span class="x">보스380</span><div><span class="a">헥사</span><span class="b">${hexa}</span></div>${rates}`;
+  const tile = (icon, spec, rate) =>
+    `<img src="./x_files/${icon}.png"><div class="text-xs font-semibold">${spec}</div><div class="text-[0.7rem] font-medium">${rate}%</div>`;
+
+  test('헥사환산·배율 저장, 다른 캐릭 파일은 거부', async () => {
+    const { db, me } = await setup();
+    const { character } = await registerCharacter({ db, nexon: null }, { memberId: me.id, name: '렌선남아' });
+    const html = page('렌선남아', '76,918', tile('extreme_lotus', '76,224', '153.6'));
+    const r = await importSpecPage(db, character.id, html, now);
+    expect(r.character).toMatchObject({ hexaSpec: 76918, bossRates: { 'swoo:extreme': 153.6 }, specSource: 'page' });
+    await expect(importSpecPage(db, character.id, page('집사0', '69,452'))).rejects.toThrow('다른 캐릭터');
+    await expect(importSpecPage(db, character.id, '<html></html>')).rejects.toThrow('헥사환산');
+  });
+
+  test('배율 없는 페이지는 기존 배율 유지', async () => {
+    const { db, me } = await setup();
+    const { character } = await registerCharacter({ db, nexon: null }, { memberId: me.id, name: '렌선남아' });
+    await importSpecPage(db, character.id, page('렌선남아', '76,918', tile('extreme_lotus', '76,224', '153.6')));
+    const r = await importSpecPage(db, character.id, page('렌선남아', '77,000'));
+    expect(r.character).toMatchObject({ hexaSpec: 77000, bossRates: { 'swoo:extreme': 153.6 } });
   });
 });
