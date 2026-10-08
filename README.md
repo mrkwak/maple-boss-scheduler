@@ -9,8 +9,8 @@
 - 한 사람이 캐릭터를 여러 개 가질 수 있음 (1캐릭 ~ 다캐릭 혼재)
 - 캐릭터별로 이번 주 갈 보스를 체크
 - **보스 코스(체인)**: 예) `익스트림 스우 → 노말 흉성 → 노말 카링` 을 **같은 캐릭터 조합으로 쭉** 진행
-- 스펙 비교 기준은 **환산 주스탯 (maplescouter.com)** — 수집 방식은 [ADR-0002](docs/adr/0002-spec-data-source.md) 참고
-- 가능 시간 히트맵으로 약속 시간 결정 (loa-guild-raid의 가능시간 기능 재사용)
+- 스펙 비교 기준은 **환산 주스탯** — maplescouter 약관상 자동 수집 금지라 직접 입력 ([ADR-0002](docs/adr/0002-spec-data-source.md)), 환산 기준 보스 컷표는 사용자 설정 ([ADR-0009](docs/adr/0009-boss-cut-table.md))
+- 주차별 가능 시간 히트맵으로 약속 시간 결정 (loa-guild-raid의 가능시간 기능 재사용)
 
 ## 문서
 
@@ -22,4 +22,4 @@
 
 ## 기술 스택 (예정)
 
-Next.js 14 (App Router) · Supabase (PostgreSQL + Realtime) · Discord OAuth · Vercel · GitHub Actions(수집 배치)
+Next.js 14 (App Router) · Google 스프레드시트(저장소, ADR-0007) · 비밀 링크 접근(로그인 없음, ADR-0008) · Vercel · 넥슨 Open API
