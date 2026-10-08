@@ -73,3 +73,23 @@ test('직업 보정: 렌선남아 실제 값 — 집사0(아란) 기준값으로
   // 보정 계수 없는 직업은 그대로
   expect(rateOf(aran, 'kaling:normal', ctx).value).toBeCloseTo(99.7, 1);
 });
+
+test('헥사환산 추정 비율은 직업별, 없는 직업은 전체 중앙값', () => {
+  const a = { className: '아란', hexaSpec: 100, apiStats: { statAttackMax: 100 } };
+  const r = { className: '렌', hexaSpec: 300, apiStats: { statAttackMax: 100 } };
+  const cal = calibrateHexa([a, r]);
+  expect(estimateHexa({ className: '렌', apiStats: { statAttackMax: 50 } }, cal)).toBeCloseTo(150);
+  expect(estimateHexa({ className: '아란', apiStats: { statAttackMax: 50 } }, cal)).toBeCloseTo(50);
+  expect(estimateHexa({ className: '비숍', apiStats: { statAttackMax: 50 } }, cal)).toBeCloseTo(100);
+});
+
+test('컷표에 없는 보스 기준값은 직업 보정 반영해 기준 직업 단위로 역산', () => {
+  // 렌: 컷표 보스(익스 스우)에서 보정 1.33 → 컷표 없는 익스 칼로스 기준값 = 76918 × 1.33 / 0.1602
+  const ren = { className: '렌', hexaSpec: 76918, bossRates: { 'swoo:extreme': 153.6, 'kalos:extreme': 16.02 } };
+  const aran = { className: '아란', hexaSpec: 69452, bossRates: {} };
+  const ctx = makeRateContext({ cuts: [{ bossKey: 'swoo:extreme', baseSpec: 57304 }], characters: [ren, aran] });
+  const f = ctx.classFactors['렌'].factor;
+  expect(ctx.derived['kalos:extreme'].base).toBeCloseTo((76918 * f) / 0.1602, -1);
+  // 아란(보정 1)의 익스 칼로스는 렌 기준값 그대로보다 낮아야 함
+  expect(rateOf(aran, 'kalos:extreme', ctx).value).toBeLessThan((69452 / (76918 / 0.1602)) * 100);
+});
