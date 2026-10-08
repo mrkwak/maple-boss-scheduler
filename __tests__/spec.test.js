@@ -18,5 +18,5 @@ test('수동 입력 정리: 쉼표·% 제거, 잘못된 배율은 버림', () =>
 });
 
 test('결과 페이지 링크', () => {
-  expect(maplescouterUrl('으낭다')).toBe('https://maplescouter.com/ko/info?name=%EC%9C%BC%EB%82%AD%EB%8B%A4');
+  expect(maplescouterUrl('집사0')).toBe('https://maplescouter.com/ko/info?name=%EC%A7%91%EC%82%AC0');
 });

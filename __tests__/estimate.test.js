@@ -3,7 +3,7 @@ import { makeRateContext, rateOf, hexaOf, baseOf } from '@/lib/rates';
 
 // 집사0 실제 API 값 (2026-10-08)
 const jipsaStats = { statAttackMax: 68092597, damage: 149, bossDamage: 377, ignoreDefense: 91.28 };
-// 으낭다 실제 API 값: 방무 26.9%
+// 방무가 낮은 캐릭터 예시: 방무 26.9%
 const lowIgnoreStats = { statAttackMax: 124549, damage: 35, bossDamage: 34, ignoreDefense: 26.9 };
 
 test('방어율 보정', () => {
