@@ -93,3 +93,21 @@ test('컷표에 없는 보스 기준값은 직업 보정 반영해 기준 직업
   // 아란(보정 1)의 익스 칼로스는 렌 기준값 그대로보다 낮아야 함
   expect(rateOf(aran, 'kalos:extreme', ctx).value).toBeLessThan((69452 / (76918 / 0.1602)) * 100);
 });
+
+test('어센틱포스 보정: 넥슨 가이드 공식, +25% 상한 대비', () => {
+  const { forceFactor } = require('@/lib/estimate');
+  expect(forceFactor(750, 700)).toBeCloseTo(1); // +50 이상 → 125% = 상한
+  expect(forceFactor(740, 700)).toBeCloseTo(1.2 / 1.25); // +40 → 120%
+  expect(forceFactor(660, 700)).toBeCloseTo(0.6 / 1.25); // −40 → 60%
+  expect(forceFactor(500, 700)).toBeCloseTo(0.05 / 1.25); // 최소 5%
+  expect(forceFactor(null, 700)).toBe(1);
+});
+
+test('노말 발드릭스: 집사0(660)·렌선남아(740) 실제 배율이 포스 보정으로 함께 설명됨', () => {
+  // 집사0 기준값(포스 보정 반영)으로 렌선남아 배율 계산 → 실제 40.11%와 비교
+  const cuts = [{ bossKey: 'baldrix:normal', baseSpec: Math.round((69452 * 0.48) / 0.1566) }, { bossKey: 'swoo:extreme', baseSpec: 57304 }];
+  const ren = { className: '렌', hexaSpec: 76918, apiStats: { authenticForce: 740 }, bossRates: { 'swoo:extreme': 153.6 } };
+  const ctx = makeRateContext({ cuts, characters: [ren] });
+  const est = rateOf({ ...ren, bossRates: {} }, 'baldrix:normal', ctx).value;
+  expect(Math.abs(est / 40.11 - 1)).toBeLessThan(0.06);
+});
