@@ -23,18 +23,19 @@ export default function MemberPicker({ members, onChoose, onCreated }) {
   };
 
   return (
-    <div className="card">
-      <p>나는 누구?</p>
-      <div className="chips">
+    <div className="card who">
+      <h2 className="wiz-title">나는 누구?</h2>
+      <p className="wiz-hint">내 이름을 누르세요. 다음부터는 기억해요.</p>
+      <div className="who-list">
         {members.map((m) => (
-          <button key={m.id} onClick={() => onChoose(m.id)}>
+          <button key={m.id} className="who-btn" onClick={() => onChoose(m.id)}>
             {m.name}
           </button>
         ))}
       </div>
       <form className="row" onSubmit={add} style={{ marginTop: 12 }}>
-        <input className="grow" placeholder="처음이면 이름 추가" value={name} onChange={(e) => setName(e.target.value)} />
-        <button className="primary" disabled={busy || !name.trim()}>
+        <input className="grow big-input" placeholder="처음이면 이름 추가" value={name} onChange={(e) => setName(e.target.value)} />
+        <button className="big primary" disabled={busy || !name.trim()}>
           추가
         </button>
       </form>

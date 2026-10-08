@@ -6,6 +6,7 @@ import { bossLabel } from '@/lib/bosses';
 import { hexaOf, judge, rateOf, VERDICT } from '@/lib/rates';
 import GoalPicker from './GoalPicker';
 import SpecForm from './SpecForm';
+import BossName from './BossName';
 
 const VERDICT_CLASS = { [VERDICT.OK]: 'ok', [VERDICT.TIGHT]: 'tight', [VERDICT.NO]: 'no' };
 
@@ -78,7 +79,7 @@ export default function CharacterCard({ character: c, ctx, goals = [], editable 
             const r = rateOf(c, g.bossKey, ctx);
             return (
               <span key={g.bossKey}>
-                {bossLabel(g.bossKey)}
+                <BossName bossKey={g.bossKey} />
                 {r && r.source !== 'blocked' && (
                   <span className={`rate ${VERDICT_CLASS[judge(r.value)] || ''}`}> {Math.round(r.value)}%</span>
                 )}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { api, loadMe, saveMe } from '@/lib/client';
+import { api, loadMe, saveMe, loadTab, saveTab } from '@/lib/client';
 import { makeRateContext } from '@/lib/rates';
 import MemberPicker from './MemberPicker';
 import CharacterCard from './CharacterCard';
@@ -9,8 +9,18 @@ import RegisterForm from './RegisterForm';
 import BossRanking from './BossRanking';
 import Courses from './Courses';
 import Availability from './Availability';
+import Tabs from './Tabs';
+import Wizard from './wizard/Wizard';
 
-export default function App({ week, month }) {
+const TABS = [
+  { id: 'apply', label: '신청', icon: '✍️' },
+  { id: 'courses', label: '코스', icon: '⚔️' },
+  { id: 'time', label: '시간표', icon: '🗓️' },
+  { id: 'ranking', label: '순위', icon: '🏆' },
+  { id: 'people', label: '캐릭터', icon: '🍁' },
+];
+
+export default function App({ week }) {
   const [members, setMembers] = useState(null);
   const [characters, setCharacters] = useState([]);
   const [cuts, setCuts] = useState([]);
@@ -18,6 +28,7 @@ export default function App({ week, month }) {
   const [courses, setCourses] = useState([]);
   const [availability, setAvailability] = useState([]);
   const [meId, setMeId] = useState(null);
+  const [tab, setTab] = useState('apply');
   const [error, setError] = useState('');
 
   const reload = useCallback(async () => {
@@ -44,6 +55,7 @@ export default function App({ week, month }) {
 
   useEffect(() => {
     setMeId(loadMe());
+    setTab(loadTab() || 'apply');
     reload();
   }, [reload]);
 
@@ -51,18 +63,24 @@ export default function App({ week, month }) {
 
   const goalsOf = (id) => goals.filter((g) => g.characterId === id);
 
+  const changeTab = (id) => {
+    saveTab(id);
+    setTab(id);
+    window.scrollTo({ top: 0 });
+  };
+
   const choose = (id) => {
     saveMe(id);
     setMeId(id);
   };
 
-  if (members == null) return <main>{error ? <p className="error">{error}</p> : <p className="muted">불러오는 중…</p>}</main>;
+  if (members == null) return <main>{error ? <p className="error">{error}</p> : <p className="muted loading">불러오는 중…</p>}</main>;
 
   const me = members.find((m) => m.id === meId);
   if (!me) {
     return (
       <main>
-        <h1>보스 파티</h1>
+        <Banner />
         <MemberPicker members={members} onChoose={choose} onCreated={reload} />
       </main>
     );
@@ -75,56 +93,98 @@ export default function App({ week, month }) {
 
   return (
     <main>
-      <div className="top">
-        <h1>보스 파티</h1>
-        <div className="row muted">
+      <Banner>
+        <span className="banner-me">
           <span>
-            {me.name} · 주차 {week} · {month}
+            <strong>{me.name}</strong>님 · {week.slice(5).replace('-', '/')} 주차
           </span>
-          <button className="link" onClick={() => choose(null)}>
+          <button className="link on-banner" onClick={() => choose(null)}>
             바꾸기
           </button>
-        </div>
-      </div>
+        </span>
+      </Banner>
+      <Tabs tabs={TABS} active={tab} onChange={changeTab} />
       {error && <p className="error">{error}</p>}
 
-      <h2>이번 주 코스</h2>
-      <Courses
-        courses={courses}
-        characters={characters}
-        members={members}
-        goals={goals}
-        ctx={ctx}
-        meId={me.id}
-        week={week}
-        availability={availability}
-        onChanged={reload}
-      />
+      {tab === 'apply' && (
+        <Wizard
+          me={me}
+          characters={characters}
+          members={members}
+          goals={goals}
+          courses={courses}
+          availability={availability}
+          ctx={ctx}
+          week={week}
+          reload={reload}
+          onFinished={() => changeTab('courses')}
+        />
+      )}
 
-      <h2>이번 주 가능 시간</h2>
-      <Availability week={week} list={availability} members={members} meId={me.id} onChanged={reload} />
+      {tab === 'courses' && (
+        <>
+          <h2>이번 주 코스</h2>
+          <Courses
+            courses={courses}
+            characters={characters}
+            members={members}
+            goals={goals}
+            ctx={ctx}
+            meId={me.id}
+            week={week}
+            availability={availability}
+            onChanged={reload}
+          />
+        </>
+      )}
 
-      <h2>내 캐릭터</h2>
-      <RegisterForm memberId={me.id} onDone={reload} />
-      {mine.length === 0 && <p className="muted">등록된 캐릭터가 없습니다.</p>}
-      {mine.map((c) => (
-        <CharacterCard key={c.id} character={c} ctx={ctx} goals={goalsOf(c.id)} editable onChanged={reload} />
-      ))}
+      {tab === 'time' && (
+        <>
+          <h2>이번 주 가능 시간</h2>
+          <Availability week={week} list={availability} members={members} meId={me.id} onChanged={reload} />
+        </>
+      )}
 
-      <h2>보스 배율 순위</h2>
-      <BossRanking characters={characters} members={members} meId={me.id} ctx={ctx} />
+      {tab === 'ranking' && (
+        <>
+          <h2>보스 배율 순위</h2>
+          <BossRanking characters={characters} members={members} meId={me.id} ctx={ctx} />
+        </>
+      )}
 
-      <h2>다른 사람</h2>
-      {others.length === 0 && <p className="muted">아직 다른 사람이 없습니다.</p>}
-      {others.map(({ member, chars }) => (
-        <div key={member.id}>
-          <p className="muted">{member.name}</p>
-          {chars.length === 0 && <p className="muted">캐릭터 없음</p>}
-          {chars.map((c) => (
-            <CharacterCard key={c.id} character={c} ctx={ctx} goals={goalsOf(c.id)} />
+      {tab === 'people' && (
+        <>
+          <h2>내 캐릭터</h2>
+          <RegisterForm memberId={me.id} onDone={reload} />
+          {mine.length === 0 && <p className="muted">등록된 캐릭터가 없습니다.</p>}
+          {mine.map((c) => (
+            <CharacterCard key={c.id} character={c} ctx={ctx} goals={goalsOf(c.id)} editable onChanged={reload} />
           ))}
-        </div>
-      ))}
+
+          <h2>다른 사람</h2>
+          {others.length === 0 && <p className="muted">아직 다른 사람이 없습니다.</p>}
+          {others.map(({ member, chars }) => (
+            <div key={member.id}>
+              <p className="member-name">{member.name}</p>
+              {chars.length === 0 && <p className="muted">캐릭터 없음</p>}
+              {chars.map((c) => (
+                <CharacterCard key={c.id} character={c} ctx={ctx} goals={goalsOf(c.id)} />
+              ))}
+            </div>
+          ))}
+        </>
+      )}
     </main>
+  );
+}
+
+function Banner({ children }) {
+  return (
+    <header className="banner">
+      <h1>
+        <span aria-hidden>🍁</span> 보스 파티
+      </h1>
+      {children}
+    </header>
   );
 }

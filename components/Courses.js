@@ -5,6 +5,7 @@ import { api, formatWhen } from '@/lib/client';
 import { bossLabel } from '@/lib/bosses';
 import { checkCourse, VERDICT } from '@/lib/rates';
 import CourseEditor from './CourseEditor';
+import BossName from './BossName';
 
 const VERDICT_CLASS = { [VERDICT.OK]: 'ok', [VERDICT.TIGHT]: 'tight', [VERDICT.NO]: 'no' };
 const VERDICT_TEXT = { [VERDICT.OK]: '가능', [VERDICT.TIGHT]: '빠듯', [VERDICT.NO]: '부족', [VERDICT.UNKNOWN]: '모름' };
@@ -72,7 +73,9 @@ export default function Courses({ courses, characters, members, goals, ctx, meId
             {result.steps.map((s, i) => (
               <div className="row step" key={s.bossKey}>
                 <span className="muted">{i + 1}</span>
-                <span className="grow">{bossLabel(s.bossKey)}</span>
+                <span className="grow">
+                  <BossName bossKey={s.bossKey} />
+                </span>
                 <span className={`rate ${VERDICT_CLASS[s.verdict] || ''}`}>
                   {s.partyRate == null ? '-' : `${Math.round(s.partyRate)}%`}
                 </span>
