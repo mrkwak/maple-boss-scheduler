@@ -23,9 +23,14 @@ test('ocid 조회 후 기본정보', async () => {
   expect(fetchImpl.calls[0].init.headers['x-nxopen-api-key']).toBe('k');
 });
 
-test('오류 응답은 NexonApiError', async () => {
-  const api = createNexonClient({ apiKey: 'k', fetchImpl: fakeFetch({}) });
-  await expect(api.getOcid('x')).rejects.toBeInstanceOf(NexonApiError);
+test('오류 응답은 NexonApiError + 오류 코드', async () => {
+  const api = createNexonClient({
+    apiKey: 'k',
+    fetchImpl: fakeFetch({ '/maplestory/v1/id': [400, { error: { name: 'OPENAPI00004', message: 'Please input valid parameter' } }] }),
+  });
+  const err = await api.getOcid('x').catch((e) => e);
+  expect(err).toBeInstanceOf(NexonApiError);
+  expect(err.code).toBe('OPENAPI00004');
 });
 
 test('키가 없으면 호출하지 않음', async () => {

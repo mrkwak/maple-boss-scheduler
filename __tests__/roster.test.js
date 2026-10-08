@@ -13,6 +13,7 @@ function fakeNexon(chars) {
       if (!c) {
         const e = new Error('nf');
         e.status = 400;
+        e.code = 'OPENAPI00004';
         throw e;
       }
       return c.ocid;
@@ -85,6 +86,19 @@ describe('캐릭터 등록', () => {
     expect(character.hexaSpec).toBeNull();
     expect(warnings).toContain('환산 조회에 실패했습니다. 직접 입력해 주세요.');
   });
+});
+
+test('넥슨 키 오류는 없는 캐릭터와 구분', async () => {
+  const { db, me } = await setup();
+  const nexon = {
+    async getOcid() {
+      const e = new Error('bad key');
+      e.status = 400;
+      e.code = 'OPENAPI00005';
+      throw e;
+    },
+  };
+  await expect(registerCharacter({ db, nexon }, { memberId: me.id, name: '닉' })).rejects.toThrow('API 키가 올바르지');
 });
 
 describe('환산 입력·삭제', () => {

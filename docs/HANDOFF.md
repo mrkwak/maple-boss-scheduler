@@ -52,7 +52,7 @@
 ## 5. 블로커
 | 블로커 | 해결 방법 | 담당 |
 |---|---|---|
-| 넥슨 API 키 | openapi.nexon.com에서 앱 등록 후 키 발급 | 사용자 |
+| ~~넥슨 API 키~~ | 발급 완료 (개발 단계). 배포 시 서비스 단계 전환 필요 여부는 미확인 | 사용자 |
 | Google 서비스 계정 | Google Cloud 프로젝트 → Sheets API 사용 설정 → 서비스 계정 키(JSON) 발급 → 스프레드시트를 서비스 계정 이메일에 편집자로 공유 | 사용자 |
 
 ## 6. 다음 작업 (순서)
@@ -78,7 +78,16 @@
 - 화면: "나는 누구?" 선택/추가(localStorage 기억), 내 캐릭터 등록·환산 입력(헥사 환산 + 보스 배율 여러 개)·삭제, 다른 사람 캐릭터 목록, 14일+ 오래됨 표시, 환산주스탯 결과 페이지 링크
 - 넥슨 키가 없으면 닉네임만 등록 + 안내 문구 (개발용)
 - 확인: 테스트 49개 통과, lint·build 통과, Playwright(390px 화면)로 링크 접근 → 멤버 추가 → 등록 → 환산 입력 → 새로고침 후 기억 → 다른 멤버 → 중복 차단 → 삭제까지 확인
-- 미확인: 넥슨 API에서 없는 캐릭터일 때 응답 코드(400/404로 가정), 실제 시트 저장
+- 미확인: 실제 시트 저장
+
+### 넥슨 Open API 실연동 확인 (2026-10-08, 개발 단계 키)
+- 키는 사용자가 발급(서비스명 "파티보스", 개발 단계). 로컬 `.env.local`에만 저장(깃 제외). Vercel에는 사용자가 환경변수로 넣어야 함
+- `GET /maplestory/v1/id?character_name=` → `{ ocid }`, `GET /maplestory/v1/character/basic?ocid=` → `character_name, world_name, character_class, character_level, character_image` 등 확인
+- 오류는 모두 HTTP 400 + `error.name`: 없는 캐릭터 `OPENAPI00004`, 잘못된 키 `OPENAPI00005` → 코드로 구분하도록 수정
+- `GET /maplestory/v1/character/stat`의 `final_stat`에 `전투력` 있음 (참고 지표로 쓸지 미정)
+- 앱 경유 등록 확인: 존재 캐릭터 → 월드·직업·레벨 자동, 없는 닉네임 → 404 안내, 같은 ocid 재등록 → 409
+- 이 클라우드 세션에서는 Node fetch가 프록시를 안 타서 `NODE_USE_ENV_PROXY=1 npm run dev`로 실행해야 외부 API 호출됨 (Vercel에는 해당 없음)
+- 호출 제한(일일·초당)은 아직 확인 못 함
 
 ## 7. 환경변수 (예정)
 | 이름 | 위치 | 용도 |
