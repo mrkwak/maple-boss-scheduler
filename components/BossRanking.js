@@ -2,18 +2,17 @@
 
 import { useMemo, useState } from 'react';
 import { BOSSES, bossKey, bossLabel } from '@/lib/bosses';
-import { judge, makeRateContext, rankForBoss, VERDICT } from '@/lib/rates';
+import { baseOf, judge, rankForBoss, VERDICT } from '@/lib/rates';
 
 const BOSS_KEYS = BOSSES.flatMap((b) => [...b.difficulties].reverse().map((d) => bossKey(b.id, d)));
-const SOURCE_LABEL = { direct: '직접', estimate: '추정', cut: '컷표' };
+const SOURCE_LABEL = { direct: '직접', cut: '계산', estimate: '추정' };
 const VERDICT_CLASS = { [VERDICT.OK]: 'ok', [VERDICT.TIGHT]: 'tight', [VERDICT.NO]: 'no' };
 
-export default function BossRanking({ characters, members, meId }) {
+export default function BossRanking({ characters, members, meId, ctx }) {
   const [key, setKey] = useState('swoo:extreme');
-  const ctx = useMemo(() => makeRateContext({ characters }), [characters]);
   const ranked = useMemo(() => rankForBoss(characters, key, ctx), [characters, key, ctx]);
   const nameOf = (id) => members.find((m) => m.id === id)?.name || '';
-  const samples = ctx.calibration[key]?.samples || 0;
+  const base = baseOf(key, ctx);
 
   return (
     <div className="card">
@@ -27,9 +26,11 @@ export default function BossRanking({ characters, members, meId }) {
         </select>
       </div>
       <p className="muted">
-        {samples
-          ? `직접 입력한 배율 ${samples}개로 다른 캐릭터를 추정합니다.`
-          : '이 보스는 직접 입력한 배율이 없어 추정할 수 없습니다. 한 캐릭터라도 배율을 입력해 주세요.'}
+        {base
+          ? `100% 기준 헥사환산 ${Math.round(base.base).toLocaleString('ko-KR')}${
+              base.source === 'derived' ? ` (직접 입력 배율 ${base.samples}개로 역산)` : ' (컷표)'
+            }`
+          : '이 보스는 기준값이 없습니다. 헥사환산과 이 보스 배율을 함께 입력한 캐릭터가 한 명 필요합니다.'}
       </p>
       <ol className="ranking">
         {ranked.map(({ character: c, rate }) => (

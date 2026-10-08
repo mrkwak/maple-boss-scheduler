@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api, loadMe, saveMe } from '@/lib/client';
+import { makeRateContext } from '@/lib/rates';
 import MemberPicker from './MemberPicker';
 import CharacterCard from './CharacterCard';
 import RegisterForm from './RegisterForm';
@@ -10,14 +11,16 @@ import BossRanking from './BossRanking';
 export default function App({ week, month }) {
   const [members, setMembers] = useState(null);
   const [characters, setCharacters] = useState([]);
+  const [cuts, setCuts] = useState([]);
   const [meId, setMeId] = useState(null);
   const [error, setError] = useState('');
 
   const reload = useCallback(async () => {
     try {
-      const [m, c] = await Promise.all([api('/api/members'), api('/api/characters')]);
+      const [m, c, k] = await Promise.all([api('/api/members'), api('/api/characters'), api('/api/cuts')]);
       setMembers(m.members);
       setCharacters(c.characters);
+      setCuts(k.cuts);
       setError('');
     } catch (e) {
       setError(e.message);
@@ -28,6 +31,8 @@ export default function App({ week, month }) {
     setMeId(loadMe());
     reload();
   }, [reload]);
+
+  const ctx = useMemo(() => makeRateContext({ cuts, characters }), [cuts, characters]);
 
   const choose = (id) => {
     saveMe(id);
@@ -70,11 +75,11 @@ export default function App({ week, month }) {
       <RegisterForm memberId={me.id} onDone={reload} />
       {mine.length === 0 && <p className="muted">등록된 캐릭터가 없습니다.</p>}
       {mine.map((c) => (
-        <CharacterCard key={c.id} character={c} editable onChanged={reload} />
+        <CharacterCard key={c.id} character={c} ctx={ctx} editable onChanged={reload} />
       ))}
 
       <h2>보스 배율 순위</h2>
-      <BossRanking characters={characters} members={members} meId={me.id} />
+      <BossRanking characters={characters} members={members} meId={me.id} ctx={ctx} />
 
       <h2>다른 사람</h2>
       {others.length === 0 && <p className="muted">아직 다른 사람이 없습니다.</p>}
@@ -83,7 +88,7 @@ export default function App({ week, month }) {
           <p className="muted">{member.name}</p>
           {chars.length === 0 && <p className="muted">캐릭터 없음</p>}
           {chars.map((c) => (
-            <CharacterCard key={c.id} character={c} />
+            <CharacterCard key={c.id} character={c} ctx={ctx} />
           ))}
         </div>
       ))}

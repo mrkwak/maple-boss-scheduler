@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { api, formatDate, formatSpec } from '@/lib/client';
 import { bossLabel } from '@/lib/bosses';
+import { hexaOf } from '@/lib/rates';
 import SpecForm from './SpecForm';
 
-export default function CharacterCard({ character: c, editable = false, onChanged }) {
+export default function CharacterCard({ character: c, ctx, editable = false, onChanged }) {
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState('');
 
@@ -20,6 +21,8 @@ export default function CharacterCard({ character: c, editable = false, onChange
   };
 
   const rates = Object.entries(c.bossRates || {});
+  const hexa = hexaOf(c, ctx);
+  const noDamage = hexa?.source === 'estimate' && hexa.value === 0;
 
   const refresh = async () => {
     try {
@@ -46,10 +49,14 @@ export default function CharacterCard({ character: c, editable = false, onChange
         </a>
       </div>
       <div className="row">
-        <span className="spec">헥사 {formatSpec(c.hexaSpec)}</span>
+        <span className="spec">
+          헥사 {noDamage ? '-' : `${hexa?.source === 'estimate' ? '약 ' : ''}${formatSpec(hexa ? Math.round(hexa.value) : null)}`}
+        </span>
+        {hexa?.source === 'estimate' && <span className="badge">추정</span>}
+        {noDamage && <span className="badge warn">방무 부족 (방어율 380% 보스 딜 없음)</span>}
         {c.specUpdatedAt && <span className="muted">{formatDate(c.specUpdatedAt)} 갱신</span>}
         {c.specStale && <span className="badge warn">오래됨</span>}
-        {c.hexaSpec == null && <span className="badge warn">환산 입력 필요</span>}
+        {!hexa && <span className="badge warn">환산 입력 필요</span>}
       </div>
       {rates.length > 0 && (
         <div className="rates">
