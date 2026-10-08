@@ -10,7 +10,7 @@ const VERDICT_CLASS = { [VERDICT.OK]: 'ok', [VERDICT.TIGHT]: 'tight', [VERDICT.N
 const VERDICT_TEXT = { [VERDICT.OK]: '가능', [VERDICT.TIGHT]: '빠듯', [VERDICT.NO]: '부족', [VERDICT.UNKNOWN]: '모름' };
 
 // 이번 주 코스 목록. 배율은 화면에서 매번 계산 → 환산을 갱신하면 바로 반영
-export default function Courses({ courses, characters, members, goals, ctx, meId, onChanged }) {
+export default function Courses({ courses, characters, members, goals, ctx, meId, week, availability = [], onChanged }) {
   const [editing, setEditing] = useState(null); // null | 'new' | course
   const [error, setError] = useState('');
 
@@ -27,7 +27,7 @@ export default function Courses({ courses, characters, members, goals, ctx, meId
     }
   };
 
-  const editorProps = { characters, members, goals, ctx, meId, onCancel: () => setEditing(null) };
+  const editorProps = { characters, members, goals, ctx, meId, week, availability, onCancel: () => setEditing(null) };
 
   return (
     <div>

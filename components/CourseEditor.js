@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { api, fromLocalInput, toLocalInput } from '@/lib/client';
 import { BOSSES, bossKey, bossLabel, getBoss, parseBossKey } from '@/lib/bosses';
 import { checkCourse, judge, rateOf, VERDICT } from '@/lib/rates';
+import { commonSlots, dayLabel, slotToIso, toRanges } from '@/lib/slots';
 
 const BOSS_KEYS = BOSSES.flatMap((b) => [...b.difficulties].reverse().map((d) => bossKey(b.id, d)));
 const VERDICT_CLASS = { [VERDICT.OK]: 'ok', [VERDICT.TIGHT]: 'tight', [VERDICT.NO]: 'no' };
@@ -19,7 +20,7 @@ function RateText({ rate }) {
  * 코스 만들기/고치기: 보스(순서) · 캐릭터 · 시간
  * 예상 파티 배율 = 파티원 배율 합 (lib/rates.js checkCourse)
  */
-export default function CourseEditor({ course, characters, members, goals, ctx, meId, onCancel, onSaved }) {
+export default function CourseEditor({ course, characters, members, goals, ctx, meId, week, availability = [], onCancel, onSaved }) {
   const myChars = characters.filter((c) => c.memberId === meId);
   const [stepKeys, setStepKeys] = useState(course?.steps.map((s) => s.bossKey) || []);
   const [characterIds, setCharacterIds] = useState(course?.characterIds || (myChars[0] ? [myChars[0].id] : []));
@@ -33,6 +34,13 @@ export default function CourseEditor({ course, characters, members, goals, ctx, 
   const ownerOf = (c) => members.find((m) => m.id === c.memberId)?.name || '';
   const picked = characters.filter((c) => characterIds.includes(c.id));
   const preview = useMemo(() => checkCourse(picked, stepKeys, ctx), [picked, stepKeys, ctx]);
+
+  // 파티 주인들이 모두 되는 시간
+  const owners = [...new Set(picked.map((c) => c.memberId))];
+  const ownerSlots = owners.map((id) => availability.find((a) => a.memberId === id)?.slots || null);
+  const missing = owners.filter((_, i) => !ownerSlots[i] || !Object.keys(ownerSlots[i]).length);
+  const ranges = missing.length || !owners.length ? [] : toRanges(commonSlots(ownerSlots));
+  const nameOfMember = (id) => members.find((m) => m.id === id)?.name || '';
 
   const goalsOf = (id) => goals.filter((g) => g.characterId === id).map((g) => g.bossKey);
   const fillFromGoals = (id) => setStepKeys(goalsOf(id).filter((k) => getBoss(parseBossKey(k).bossId)?.cycle === 'weekly'));
@@ -147,6 +155,35 @@ export default function CourseEditor({ course, characters, members, goals, ctx, 
       </div>
 
       <p className="label">3. 언제</p>
+      {owners.length > 0 && (
+        <div style={{ marginBottom: 6 }}>
+          {missing.length > 0 ? (
+            <p className="muted">가능 시간 미입력: {missing.map(nameOfMember).join(', ')}</p>
+          ) : ranges.length === 0 ? (
+            <p className="muted">이번 주에 모두 되는 시간이 없습니다.</p>
+          ) : (
+            <>
+              <p className="muted">모두 되는 시간 (누르면 시작 시간으로)</p>
+              <div className="chips">
+                {ranges.map((r) => {
+                  const iso = slotToIso(week, `${r.day}-${r.from}`);
+                  const on = fromLocalInput(startAt) === iso;
+                  return (
+                    <button
+                      type="button"
+                      key={`${r.day}-${r.from}`}
+                      className={`chip time-chip ${on ? 'on' : ''}`}
+                      onClick={() => setStartAt(toLocalInput(iso))}
+                    >
+                      {dayLabel(week, r.day)} {r.from}~{r.to}시
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      )}
       <input type="datetime-local" value={startAt} onChange={(e) => setStartAt(e.target.value)} />
       <div className="row" style={{ marginTop: 6 }}>
         <input className="grow" placeholder="코스 이름 (선택)" value={title} onChange={(e) => setTitle(e.target.value)} />

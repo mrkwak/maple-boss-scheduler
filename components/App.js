@@ -8,6 +8,7 @@ import CharacterCard from './CharacterCard';
 import RegisterForm from './RegisterForm';
 import BossRanking from './BossRanking';
 import Courses from './Courses';
+import Availability from './Availability';
 
 export default function App({ week, month }) {
   const [members, setMembers] = useState(null);
@@ -15,6 +16,7 @@ export default function App({ week, month }) {
   const [cuts, setCuts] = useState([]);
   const [goals, setGoals] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [availability, setAvailability] = useState([]);
   const [meId, setMeId] = useState(null);
   const [error, setError] = useState('');
 
@@ -28,6 +30,8 @@ export default function App({ week, month }) {
         api('/api/courses'),
       ]);
       setCourses(co.courses);
+      const av = await api('/api/availability');
+      setAvailability(av.list);
       setMembers(m.members);
       setCharacters(c.characters);
       setCuts(k.cuts);
@@ -92,8 +96,13 @@ export default function App({ week, month }) {
         goals={goals}
         ctx={ctx}
         meId={me.id}
+        week={week}
+        availability={availability}
         onChanged={reload}
       />
+
+      <h2>이번 주 가능 시간</h2>
+      <Availability week={week} list={availability} members={members} meId={me.id} onChanged={reload} />
 
       <h2>내 캐릭터</h2>
       <RegisterForm memberId={me.id} onDone={reload} />
