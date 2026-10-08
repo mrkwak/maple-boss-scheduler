@@ -59,3 +59,10 @@ a { color: var(--accent); }
 .rate.no { color: var(--danger); }
 .filepick { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px dashed var(--accent); border-radius: 8px; color: var(--accent); cursor: pointer; }
 .filepick input { display: none; }
+.goal-list { display: flex; flex-direction: column; gap: 6px; }
+.goal-row { display: flex; flex-direction: column; gap: 4px; padding: 6px 0; border-top: 1px solid var(--line); }
+.goal-name { font-size: 14px; font-weight: 600; display: flex; gap: 6px; align-items: center; }
+.chip { padding: 4px 8px; font-size: 13px; border-radius: 999px; }
+.chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.chip.on .rate { color: #fff; }
+.goals-summary { font-size: 13px; margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px 10px; }

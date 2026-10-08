@@ -3,11 +3,15 @@
 import { useState } from 'react';
 import { api, formatDate, formatSpec } from '@/lib/client';
 import { bossLabel } from '@/lib/bosses';
-import { hexaOf } from '@/lib/rates';
+import { hexaOf, judge, rateOf, VERDICT } from '@/lib/rates';
+import GoalPicker from './GoalPicker';
 import SpecForm from './SpecForm';
 
-export default function CharacterCard({ character: c, ctx, editable = false, onChanged }) {
+const VERDICT_CLASS = { [VERDICT.OK]: 'ok', [VERDICT.TIGHT]: 'tight', [VERDICT.NO]: 'no' };
+
+export default function CharacterCard({ character: c, ctx, goals = [], editable = false, onChanged }) {
   const [editing, setEditing] = useState(false);
+  const [picking, setPicking] = useState(false);
   const [error, setError] = useState('');
 
   const remove = async () => {
@@ -60,11 +64,34 @@ export default function CharacterCard({ character: c, ctx, editable = false, onC
       </div>
       {rates.length > 0 && (
         <div className="rates">
-          {rates.map(([k, v]) => `${bossLabel(k)} ${v}%`).join(' · ')}
+          {rates
+            .slice(0, 3)
+            .map(([k, v]) => `${bossLabel(k)} ${v}%`)
+            .join(' · ')}
+          {rates.length > 3 && ` 외 ${rates.length - 3}개 (보스 배율 순위에서 확인)`}
         </div>
       )}
-      {editable && !editing && (
+      {goals.length > 0 && (
+        <div className="goals-summary">
+          <span className="muted">목표</span>
+          {goals.map((g) => {
+            const r = rateOf(c, g.bossKey, ctx);
+            return (
+              <span key={g.bossKey}>
+                {bossLabel(g.bossKey)}
+                {r && r.source !== 'blocked' && (
+                  <span className={`rate ${VERDICT_CLASS[judge(r.value)] || ''}`}> {Math.round(r.value)}%</span>
+                )}
+              </span>
+            );
+          })}
+        </div>
+      )}
+      {editable && !editing && !picking && (
         <div className="row" style={{ marginTop: 8 }}>
+          <button className="primary" onClick={() => setPicking(true)}>
+            주간 목표
+          </button>
           <button onClick={() => setEditing(true)}>환산 입력</button>
           {c.ocid && <button onClick={refresh}>정보 갱신</button>}
           <button className="danger" onClick={remove}>
@@ -78,6 +105,18 @@ export default function CharacterCard({ character: c, ctx, editable = false, onC
           onCancel={() => setEditing(false)}
           onSaved={async () => {
             setEditing(false);
+            await onChanged();
+          }}
+        />
+      )}
+      {picking && (
+        <GoalPicker
+          character={c}
+          goals={goals}
+          ctx={ctx}
+          onCancel={() => setPicking(false)}
+          onSaved={async () => {
+            setPicking(false);
             await onChanged();
           }}
         />

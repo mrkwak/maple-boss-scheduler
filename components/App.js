@@ -12,15 +12,22 @@ export default function App({ week, month }) {
   const [members, setMembers] = useState(null);
   const [characters, setCharacters] = useState([]);
   const [cuts, setCuts] = useState([]);
+  const [goals, setGoals] = useState([]);
   const [meId, setMeId] = useState(null);
   const [error, setError] = useState('');
 
   const reload = useCallback(async () => {
     try {
-      const [m, c, k] = await Promise.all([api('/api/members'), api('/api/characters'), api('/api/cuts')]);
+      const [m, c, k, g] = await Promise.all([
+        api('/api/members'),
+        api('/api/characters'),
+        api('/api/cuts'),
+        api('/api/goals'),
+      ]);
       setMembers(m.members);
       setCharacters(c.characters);
       setCuts(k.cuts);
+      setGoals(g.goals);
       setError('');
     } catch (e) {
       setError(e.message);
@@ -33,6 +40,8 @@ export default function App({ week, month }) {
   }, [reload]);
 
   const ctx = useMemo(() => makeRateContext({ cuts, characters }), [cuts, characters]);
+
+  const goalsOf = (id) => goals.filter((g) => g.characterId === id);
 
   const choose = (id) => {
     saveMe(id);
@@ -75,7 +84,7 @@ export default function App({ week, month }) {
       <RegisterForm memberId={me.id} onDone={reload} />
       {mine.length === 0 && <p className="muted">등록된 캐릭터가 없습니다.</p>}
       {mine.map((c) => (
-        <CharacterCard key={c.id} character={c} ctx={ctx} editable onChanged={reload} />
+        <CharacterCard key={c.id} character={c} ctx={ctx} goals={goalsOf(c.id)} editable onChanged={reload} />
       ))}
 
       <h2>보스 배율 순위</h2>
@@ -88,7 +97,7 @@ export default function App({ week, month }) {
           <p className="muted">{member.name}</p>
           {chars.length === 0 && <p className="muted">캐릭터 없음</p>}
           {chars.map((c) => (
-            <CharacterCard key={c.id} character={c} ctx={ctx} />
+            <CharacterCard key={c.id} character={c} ctx={ctx} goals={goalsOf(c.id)} />
           ))}
         </div>
       ))}
