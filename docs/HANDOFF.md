@@ -53,7 +53,8 @@
 | 블로커 | 해결 방법 | 담당 |
 |---|---|---|
 | ~~넥슨 API 키~~ | 발급 완료 (개발 단계). 배포 시 서비스 단계 전환 필요 여부는 미확인 | 사용자 |
-| Google 서비스 계정 | Google Cloud 프로젝트 → Sheets API 사용 설정 → 서비스 계정 키(JSON) 발급 → 스프레드시트를 서비스 계정 이메일에 편집자로 공유 | 사용자 |
+| ~~Google 서비스 계정~~ | 번거로워서 Upstash Redis로 변경 (ADR-0011) | - |
+| Vercel 프로젝트 생성 | 세션의 Vercel 연결은 생성 권한 403 → 대시보드에서 Import + Storage에서 Upstash Redis 연결 | 사용자 |
 
 ## 6. 다음 작업 (순서)
 1. [사용자] maplescouter 문의 메일 발송 → 답변 공유
@@ -127,14 +128,20 @@
 - 코스 편집 ③ 언제: 파티 주인들이 모두 되는 시간 칩(예: 10/8(목) 21~23시) → 누르면 시작 시간 입력. 미입력자는 이름 표시
 - 확인: 테스트 84개, 브라우저로 2명 입력(끌기 포함) → 공통 시간 칩 2개 → 선택 → 코스 시간 10/10(토) 21:00 저장
 
-## 7. 환경변수 (예정)
+## 배포 준비 (2026-10-08)
+- `main`에 합침 (mrkwak/maple-boss-scheduler#1)
+- 저장소를 Upstash Redis로 (ADR-0011, `lib/db/redis.js`). 보스 기준값은 배포 후 `PUT /api/cuts`로 넣음(값은 저장소에 커밋하지 않음)
+- 스프레드시트 `[메]파티보스`에 탭·헤더·boss_cuts는 만들어 둠 (대안용)
+
+## 7. 환경변수
 | 이름 | 위치 | 용도 |
 |---|---|---|
 | `ACCESS_KEY` | Vercel | 비밀 링크 키 |
 | `SPEC_PROVIDER` | Vercel | `manual`(기본) / `maplescouter`(허락·구현 후) |
 | `NEXON_API_KEY` | Vercel | 넥슨 Open API (서버 전용) |
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY` | Vercel | 스프레드시트 접근 (서버 전용) |
-| `SHEET_ID` | Vercel | 스프레드시트 ID |
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | Vercel (Redis 연결 시 자동) | 저장소 (ADR-0011) |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY` | Vercel | (대안) 스프레드시트 접근 |
+| `SHEET_ID` | Vercel | (대안) 스프레드시트 ID. Redis가 있으면 무시 |
 
 ## 8. 로아 프로젝트에서 가져올 파일
 | 원본 (`loa-guild-raid`) | 용도 |
