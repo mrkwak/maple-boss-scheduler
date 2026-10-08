@@ -1,6 +1,6 @@
 # 핸드오프 — maple-boss-scheduler
 
-최종 갱신: 2026-10-08 (8차) · 단계: M4 완료 → 실사용하며 수정 (M5 추천·M6 클리어 체크 남음)
+최종 갱신: 2026-10-08 (9차) · 단계: M4 완료 · **배포됨, 저장소 미연결** → 다음 세션 첫 작업은 아래 "배포 상태"
 
 ## 1. 한 줄 요약
 메이플(KMS) 지인 그룹용 "보스 코스(체인) 단위 파티 구성 + 시간 약속" 웹앱. 지표는 **헥사 환산 + 보스별 배율(%)**. maplescouter 운영자에게 사용 허락 문의 중이며 **허락 가정으로 개발**(조회 구현만 답변 후). M0(기본 구조·핵심 로직)·M1(멤버·캐릭터 등록 화면) 완료, 다음은 M2(목표·배율 줄 세우기).
@@ -128,10 +128,17 @@
 - 코스 편집 ③ 언제: 파티 주인들이 모두 되는 시간 칩(예: 10/8(목) 21~23시) → 누르면 시작 시간 입력. 미입력자는 이름 표시
 - 확인: 테스트 84개, 브라우저로 2명 입력(끌기 포함) → 공통 시간 칩 2개 → 선택 → 코스 시간 10/10(토) 21:00 저장
 
-## 배포 준비 (2026-10-08)
-- `main`에 합침 (mrkwak/maple-boss-scheduler#1)
-- 저장소를 Upstash Redis로 (ADR-0011, `lib/db/redis.js`). 보스 기준값은 배포 후 `PUT /api/cuts`로 넣음(값은 저장소에 커밋하지 않음)
-- 스프레드시트 `[메]파티보스`에 탭·헤더·boss_cuts는 만들어 둠 (대안용)
+## 배포 상태 (2026-10-08, 9차) — 다음 세션 첫 작업
+- Vercel 프로젝트 `maple-boss-scheduler` (`prj_b4ngt059CPSP82coxytB1J6sKec2`, 팀 `team_xHOmrsg1M1GkCp9EAb35uCWN`), 주소 https://maple-boss-scheduler-tau.vercel.app , `main` 자동 배포
+- 코드는 `main`에 합침 (mrkwak/maple-boss-scheduler#1, #2). 작업 브랜치 `claude/gracious-babbage-vmfmq2`도 `main`과 같음
+- 확인됨: 키 없이 접속 → 404, `NEXON_API_KEY` 들어감, 공유 링크 키(`ACCESS_KEY`)는 사용자가 넣음 — 값은 사용자에게 전달했고 문서엔 안 적음
+- **막힌 것: 저장소 미연결.** `/api/health` → `storage: "memory"`, `storageEnv: []`. 운영에서 메모리 저장소는 오류라 `/api/cuts` 등 500
+  - 해결(사용자): 프로젝트 → Storage → Create Database → Upstash for Redis(무료) → Connect(Production·Preview) → Redeploy
+  - 확인: `curl -b mbs_access=<ACCESS_KEY> <주소>/api/health` 에서 `storage: "redis"`
+- 연결 후 할 일(Claude): 보스 기준값 22개를 `PUT /api/cuts` 로 넣기. 값은 로컬 `data/seed.local.json`(깃 제외) 또는 스프레드시트 `[메]파티보스`의 `boss_cuts` 탭. **저장소(리포)에는 커밋 금지**
+  - 바디: `{ "cuts": [{ "bossKey", "baseSpec", "note", "source", "verifiedAt" }] }`, 쿠키 `mbs_access=<ACCESS_KEY>`
+- 이 세션 도구 제약: Vercel 커넥터는 읽기만 됨(프로젝트·스토리지 생성, 환경변수 조회 모두 403). 크롬/브라우저 조작 도구 없음. gcloud 미로그인 → 서비스 계정 생성 불가
+- 대안 저장소: 스프레드시트 `[메]파티보스` (ID `1QOJhMcRblxbIVWhYSSKfQD_EOnT3QP_Td8vEsI4QcIk`)에 탭 8개·헤더·boss_cuts 22행 만들어 둠. 쓰려면 서비스 계정 필요(ADR-0007) — 사용자가 번거롭다고 해서 보류
 
 ## 7. 환경변수
 | 이름 | 위치 | 용도 |
