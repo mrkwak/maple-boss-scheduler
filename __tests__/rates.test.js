@@ -1,16 +1,18 @@
-import { indexCuts, rateOf, judge, rankForBoss, partyRate, checkCourse, VERDICT } from '@/lib/rates';
+import { makeRateContext, rateOf, judge, rankForBoss, partyRate, checkCourse, VERDICT } from '@/lib/rates';
 
-const cuts = indexCuts([
-  { bossKey: 'swoo:extreme', baseSpec: 126000 },
-  { bossKey: 'seren:extreme', baseSpec: 250000 },
-]);
+const cuts = makeRateContext({
+  cuts: [
+    { bossKey: 'swoo:extreme', baseSpec: 126000 },
+    { bossKey: 'seren:extreme', baseSpec: 250000 },
+  ],
+});
 
 const a = { id: 'a', memberId: 'm1', hexaSpec: 63000, bossRates: {} };
 const b = { id: 'b', memberId: 'm2', hexaSpec: 70000, bossRates: { 'swoo:extreme': 60 } };
 const c = { id: 'c', memberId: 'm3', hexaSpec: null, bossRates: {} };
 
-test('공급자 배율이 컷표보다 우선', () => {
-  expect(rateOf(b, 'swoo:extreme', cuts)).toEqual({ value: 60, source: 'provider' });
+test('직접 값이 컷표보다 우선', () => {
+  expect(rateOf(b, 'swoo:extreme', cuts)).toEqual({ value: 60, source: 'direct' });
 });
 
 test('공급자 값이 없으면 컷표로 환산', () => {

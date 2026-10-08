@@ -21,13 +21,24 @@ export default function CharacterCard({ character: c, editable = false, onChange
 
   const rates = Object.entries(c.bossRates || {});
 
+  const refresh = async () => {
+    try {
+      await api(`/api/characters/${c.id}/refresh`, { method: 'POST' });
+      await onChanged();
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+
   return (
     <div className="card">
       <div className="row">
         <div className="grow">
           <strong>{c.name}</strong>{' '}
           <span className="muted">
-            {[c.className, c.level && `Lv.${c.level}`, c.world].filter(Boolean).join(' · ')}
+            {[c.className, c.level && `Lv.${c.level}`, c.world, c.combatPower && `전투력 ${formatSpec(c.combatPower)}`]
+              .filter(Boolean)
+              .join(' · ')}
           </span>
         </div>
         <a href={c.sourceUrl} target="_blank" rel="noreferrer" className="muted">
@@ -48,6 +59,7 @@ export default function CharacterCard({ character: c, editable = false, onChange
       {editable && !editing && (
         <div className="row" style={{ marginTop: 8 }}>
           <button onClick={() => setEditing(true)}>환산 입력</button>
+          {c.ocid && <button onClick={refresh}>정보 갱신</button>}
           <button className="danger" onClick={remove}>
             삭제
           </button>

@@ -22,6 +22,9 @@ function fakeNexon(chars) {
       const c = Object.values(chars).find((x) => x.ocid === ocid);
       return { name: c.name, world: '스카니아', className: '아델', level: 285 };
     },
+    async getStats() {
+      return { combatPower: 140962, statAttackMax: 1000, ignoreDefense: 90 };
+    },
   };
 }
 
@@ -48,7 +51,9 @@ describe('캐릭터 등록', () => {
     const { character, warnings } = await registerCharacter(
       { db, nexon, provider: manualProvider }, { memberId: me.id, name: '닉' }, now,
     );
-    expect(character).toMatchObject({ ocid: 'o1', world: '스카니아', className: '아델', level: 285, hexaSpec: null });
+    expect(character).toMatchObject({
+      ocid: 'o1', world: '스카니아', className: '아델', level: 285, hexaSpec: null, combatPower: 140962,
+    });
     expect(warnings).toEqual([]);
   });
 

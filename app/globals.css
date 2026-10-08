@@ -50,3 +50,10 @@ button:disabled { opacity: 0.5; cursor: default; }
 .spec { font-size: 18px; font-weight: 600; }
 .rates { font-size: 13px; color: var(--muted); }
 a { color: var(--accent); }
+.ranking { list-style: none; padding: 0; margin: 8px 0 0; }
+.ranking li { display: flex; gap: 8px; align-items: center; padding: 6px 0; border-top: 1px solid var(--line); }
+.ranking li.mine { font-weight: 600; }
+.rate { font-variant-numeric: tabular-nums; }
+.rate.ok { color: #2f9e5b; }
+.rate.tight { color: var(--warn); }
+.rate.no { color: var(--danger); }

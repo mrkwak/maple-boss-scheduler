@@ -5,6 +5,7 @@ import { api, loadMe, saveMe } from '@/lib/client';
 import MemberPicker from './MemberPicker';
 import CharacterCard from './CharacterCard';
 import RegisterForm from './RegisterForm';
+import BossRanking from './BossRanking';
 
 export default function App({ week, month }) {
   const [members, setMembers] = useState(null);
@@ -71,6 +72,9 @@ export default function App({ week, month }) {
       {mine.map((c) => (
         <CharacterCard key={c.id} character={c} editable onChanged={reload} />
       ))}
+
+      <h2>보스 배율 순위</h2>
+      <BossRanking characters={characters} members={members} meId={me.id} />
 
       <h2>다른 사람</h2>
       {others.length === 0 && <p className="muted">아직 다른 사람이 없습니다.</p>}

@@ -1,10 +1,12 @@
 import { recommend } from '@/lib/matching';
-import { indexCuts } from '@/lib/rates';
+import { makeRateContext } from '@/lib/rates';
 
-const cutIndex = indexCuts([
-  { bossKey: 'swoo:extreme', baseSpec: 100000 },
-  { bossKey: 'kaling:normal', baseSpec: 80000 },
-]);
+const ctx = makeRateContext({
+  cuts: [
+    { bossKey: 'swoo:extreme', baseSpec: 100000 },
+    { bossKey: 'kaling:normal', baseSpec: 80000 },
+  ],
+});
 const stepKeys = ['swoo:extreme', 'kaling:normal'];
 const base = { id: 'me', memberId: 'm1', hexaSpec: 60000 };
 const characters = [
@@ -22,7 +24,7 @@ const goalsByCharacter = {
 };
 
 test('같은 사람·목표 없는 캐릭은 제외, 스펙 가까운 순', () => {
-  const ids = recommend({ stepKeys, base, characters, goalsByCharacter, cutIndex }).map((r) => r.character.id);
+  const ids = recommend({ stepKeys, base, characters, goalsByCharacter, ctx }).map((r) => r.character.id);
   expect(ids).toEqual(['close', 'far']);
 });
 
@@ -33,7 +35,7 @@ test('이미 다른 코스에 배정된 보스는 겹침에서 빠짐', () => {
     characters: [base, characters[2]],
     goalsByCharacter,
     assignedByCharacter: { close: ['swoo:extreme'] },
-    cutIndex,
+    ctx,
   });
   expect(r.sharedKeys).toEqual(['kaling:normal']);
   expect(r.missingKeys).toEqual(['swoo:extreme']);
@@ -41,8 +43,8 @@ test('이미 다른 코스에 배정된 보스는 겹침에서 빠짐', () => {
 
 test('시간이 겹치면 점수가 오름', () => {
   const slotsByMember = { m1: { 'thu-21': true, 'thu-22': true }, m2: { 'thu-21': true } };
-  const [withTime] = recommend({ stepKeys, base, characters: [base, characters[2]], goalsByCharacter, slotsByMember, cutIndex });
-  const [noTime] = recommend({ stepKeys, base, characters: [base, characters[2]], goalsByCharacter, cutIndex });
+  const [withTime] = recommend({ stepKeys, base, characters: [base, characters[2]], goalsByCharacter, slotsByMember, ctx });
+  const [noTime] = recommend({ stepKeys, base, characters: [base, characters[2]], goalsByCharacter, ctx });
   expect(withTime.time).toBe(0.5);
   expect(withTime.score).toBeGreaterThan(noTime.score);
 });
