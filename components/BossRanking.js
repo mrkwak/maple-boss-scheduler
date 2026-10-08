@@ -38,7 +38,9 @@ export default function BossRanking({ characters, members, meId, ctx }) {
             <span className="grow">
               {c.name} <span className="muted">{nameOf(c.memberId)}</span>
             </span>
-            {rate ? (
+            {rate?.source === 'blocked' ? (
+              <span className="badge warn">레벨 부족 · 입장 불가</span>
+            ) : rate ? (
               <>
                 <span className={`rate ${VERDICT_CLASS[judge(rate.value)] || ''}`}>{rate.value.toFixed(1)}%</span>
                 <span className="badge">{SOURCE_LABEL[rate.source]}</span>

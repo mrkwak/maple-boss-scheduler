@@ -111,3 +111,18 @@ test('노말 발드릭스: 집사0(660)·렌선남아(740) 실제 배율이 포�
   const est = rateOf({ ...ren, bossRates: {} }, 'baldrix:normal', ctx).value;
   expect(Math.abs(est / 40.11 - 1)).toBeLessThan(0.06);
 });
+
+test('레벨 보정: +5 이상 120%(상한), +1 112%, 같은 레벨 110%, 보스가 높으면 입장 불가', () => {
+  const { levelFactor } = require('@/lib/estimate');
+  expect(levelFactor(295, 290)).toBeCloseTo(1);
+  expect(levelFactor(291, 290)).toBeCloseTo(1.12 / 1.2);
+  expect(levelFactor(290, 290)).toBeCloseTo(1.1 / 1.2);
+  expect(levelFactor(289, 290)).toBe(0);
+  expect(levelFactor(null, 290)).toBe(1);
+});
+
+test('보스 레벨이 캐릭터보다 높으면 배율 대신 입장 불가', () => {
+  const ctx = makeRateContext({ cuts: [{ bossKey: 'jupiter:normal', baseSpec: 300000 }] });
+  expect(rateOf({ level: 294, hexaSpec: 80000 }, 'jupiter:normal', ctx)).toEqual({ value: 0, source: 'blocked' });
+  expect(rateOf({ level: 295, hexaSpec: 80000 }, 'jupiter:normal', ctx).source).toBe('cut');
+});
