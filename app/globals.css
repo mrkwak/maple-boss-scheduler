@@ -66,3 +66,16 @@ a { color: var(--accent); }
 .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
 .chip.on .rate { color: #fff; }
 .goals-summary { font-size: 13px; margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.label { font-size: 13px; font-weight: 600; margin: 12px 0 4px; }
+.step { padding: 4px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.step button { padding: 2px 8px; }
+.cand-list { display: flex; flex-direction: column; gap: 4px; }
+.cand { display: flex; gap: 8px; align-items: flex-start; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+.cand.on { border-color: var(--accent); }
+.cand-rates { display: flex; gap: 8px; font-size: 13px; margin-top: 2px; flex-wrap: wrap; }
+.cand input { margin-top: 3px; }
+.badge.ok { color: #2f9e5b; border-color: #2f9e5b; }
+.badge.tight { color: var(--warn); border-color: var(--warn); }
+.badge.no { color: var(--danger); border-color: var(--danger); }
+.course.canceled { opacity: 0.6; }
+input[type='datetime-local'] { width: 100%; }

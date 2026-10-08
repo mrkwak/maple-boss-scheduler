@@ -7,23 +7,27 @@ import MemberPicker from './MemberPicker';
 import CharacterCard from './CharacterCard';
 import RegisterForm from './RegisterForm';
 import BossRanking from './BossRanking';
+import Courses from './Courses';
 
 export default function App({ week, month }) {
   const [members, setMembers] = useState(null);
   const [characters, setCharacters] = useState([]);
   const [cuts, setCuts] = useState([]);
   const [goals, setGoals] = useState([]);
+  const [courses, setCourses] = useState([]);
   const [meId, setMeId] = useState(null);
   const [error, setError] = useState('');
 
   const reload = useCallback(async () => {
     try {
-      const [m, c, k, g] = await Promise.all([
+      const [m, c, k, g, co] = await Promise.all([
         api('/api/members'),
         api('/api/characters'),
         api('/api/cuts'),
         api('/api/goals'),
+        api('/api/courses'),
       ]);
+      setCourses(co.courses);
       setMembers(m.members);
       setCharacters(c.characters);
       setCuts(k.cuts);
@@ -79,6 +83,17 @@ export default function App({ week, month }) {
         </div>
       </div>
       {error && <p className="error">{error}</p>}
+
+      <h2>이번 주 코스</h2>
+      <Courses
+        courses={courses}
+        characters={characters}
+        members={members}
+        goals={goals}
+        ctx={ctx}
+        meId={me.id}
+        onChanged={reload}
+      />
 
       <h2>내 캐릭터</h2>
       <RegisterForm memberId={me.id} onDone={reload} />
