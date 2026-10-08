@@ -3,11 +3,22 @@
 import { useState } from 'react';
 import { api, formatSpec } from '@/lib/client';
 import { hexaOf } from '@/lib/rates';
+import { buildBoard, CELL } from '@/lib/board';
 import Shell from './Shell';
 
 // 1단계: 내 캐릭터 고르기 또는 새로 등록
-export default function StepCharacter({ me, characters, ctx, onPicked, reload }) {
+// 이번 주 상태 한 줄: 미신청 / 미정 N / 파티 N
+function statusOf(board, id) {
+  const cells = Object.values(board.cells[id] || {});
+  if (!cells.length) return { text: '미신청', cls: '' };
+  const pending = cells.filter((c) => c.state === CELL.GOAL).length;
+  const fixed = cells.length - pending;
+  return pending ? { text: `미정 ${pending}${fixed ? ` · 파티 ${fixed}` : ''}`, cls: 'warn' } : { text: `파티 ${fixed} 확정`, cls: 'ok' };
+}
+
+export default function StepCharacter({ me, characters, goals, courses, ctx, onPicked, reload }) {
   const mine = characters.filter((c) => c.memberId === me.id);
+  const board = buildBoard(mine, goals, courses);
   const [adding, setAdding] = useState(mine.length === 0);
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
@@ -42,6 +53,7 @@ export default function StepCharacter({ me, characters, ctx, onPicked, reload })
               </span>
               <span className="grow">
                 <strong>{c.name}</strong>
+                <span className={`badge ${statusOf(board, c.id).cls}`}>{statusOf(board, c.id).text}</span>
                 <span className="muted">
                   {[c.className, c.level && `Lv.${c.level}`].filter(Boolean).join(' · ') || '정보 없음'}
                 </span>

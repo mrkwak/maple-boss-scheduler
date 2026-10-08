@@ -6,17 +6,14 @@ import { makeRateContext } from '@/lib/rates';
 import MemberPicker from './MemberPicker';
 import CharacterCard from './CharacterCard';
 import RegisterForm from './RegisterForm';
-import BossRanking from './BossRanking';
-import Courses from './Courses';
-import Availability from './Availability';
+import Board from './Board';
+import Schedule from './Schedule';
 import Tabs from './Tabs';
 import Wizard from './wizard/Wizard';
 
 const TABS = [
   { id: 'apply', label: '신청', icon: '✍️' },
-  { id: 'courses', label: '코스', icon: '⚔️' },
-  { id: 'time', label: '시간표', icon: '🗓️' },
-  { id: 'ranking', label: '순위', icon: '🏆' },
+  { id: 'schedule', label: '이번 주 일정', icon: '🗓️' },
   { id: 'people', label: '캐릭터', icon: '🍁' },
 ];
 
@@ -55,7 +52,7 @@ export default function App({ week }) {
 
   useEffect(() => {
     setMeId(loadMe());
-    setTab(loadTab() || 'apply');
+    setTab(TABS.some((t) => t.id === loadTab()) ? loadTab() : 'apply');
     reload();
   }, [reload]);
 
@@ -117,14 +114,14 @@ export default function App({ week }) {
           ctx={ctx}
           week={week}
           reload={reload}
-          onFinished={() => changeTab('courses')}
+          onShowSchedule={() => changeTab('schedule')}
         />
       )}
 
-      {tab === 'courses' && (
+      {tab === 'schedule' && (
         <>
-          <h2>이번 주 코스</h2>
-          <Courses
+          <h2>이번 주 일정</h2>
+          <Schedule
             courses={courses}
             characters={characters}
             members={members}
@@ -138,23 +135,10 @@ export default function App({ week }) {
         </>
       )}
 
-      {tab === 'time' && (
-        <>
-          <h2>이번 주 가능 시간</h2>
-          <Availability week={week} list={availability} members={members} meId={me.id} onChanged={reload} />
-        </>
-      )}
-
-      {tab === 'ranking' && (
-        <>
-          <h2>보스 배율 순위</h2>
-          <BossRanking characters={characters} members={members} meId={me.id} ctx={ctx} />
-        </>
-      )}
-
       {tab === 'people' && (
         <>
           <h2>내 캐릭터</h2>
+          <Board chars={mine} goals={goals} courses={courses} characters={characters} onChanged={reload} />
           <RegisterForm memberId={me.id} onDone={reload} />
           {mine.length === 0 && <p className="muted">등록된 캐릭터가 없습니다.</p>}
           {mine.map((c) => (

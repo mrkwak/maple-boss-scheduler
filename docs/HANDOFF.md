@@ -1,6 +1,6 @@
 # 핸드오프 — maple-boss-scheduler
 
-최종 갱신: 2026-10-08 (9차) · 단계: M4 완료 · **배포됨, 저장소 미연결** → 다음 세션 첫 작업은 아래 "배포 상태"
+최종 갱신: 2026-10-08 (10차) · 단계: M4 완료 + 신청 화면·디자인 · **배포됨, Redis 연결됨**
 
 ## 1. 한 줄 요약
 메이플(KMS) 지인 그룹용 "보스 코스(체인) 단위 파티 구성 + 시간 약속" 웹앱. 지표는 **헥사 환산 + 보스별 배율(%)**. maplescouter 운영자에게 사용 허락 문의 중이며 **허락 가정으로 개발**(조회 구현만 답변 후). M0(기본 구조·핵심 로직)·M1(멤버·캐릭터 등록 화면) 완료, 다음은 M2(목표·배율 줄 세우기).
@@ -54,7 +54,7 @@
 |---|---|---|
 | ~~넥슨 API 키~~ | 발급 완료 (개발 단계). 배포 시 서비스 단계 전환 필요 여부는 미확인 | 사용자 |
 | ~~Google 서비스 계정~~ | 번거로워서 Upstash Redis로 변경 (ADR-0011) | - |
-| Vercel 프로젝트 생성 | 세션의 Vercel 연결은 생성 권한 403 → 대시보드에서 Import + Storage에서 Upstash Redis 연결 | 사용자 |
+| ~~Vercel 저장소 연결~~ | 기존 무료 Upstash `upstash-kv-bole-kite`(87sarang-blog와 공유, 키 접두어 `mbs:`)를 연결, 접두어 `KV` (2026-10-08) | - |
 
 ## 6. 다음 작업 (순서)
 1. [사용자] maplescouter 문의 메일 발송 → 답변 공유
@@ -128,14 +128,25 @@
 - 코스 편집 ③ 언제: 파티 주인들이 모두 되는 시간 칩(예: 10/8(목) 21~23시) → 누르면 시작 시간 입력. 미입력자는 이름 표시
 - 확인: 테스트 84개, 브라우저로 2명 입력(끌기 포함) → 공통 시간 칩 2개 → 선택 → 코스 시간 10/10(토) 21:00 저장
 
-## 배포 상태 (2026-10-08, 9차) — 다음 세션 첫 작업
+## 신청 화면·디자인 (2026-10-08, 10차)
+- 탭: 신청 / 이번 주 일정 / 캐릭터 (순위·시간표 히트맵·코스 목록 탭은 사용자 요청으로 뺌)
+- 신청(키오스크식): 캐릭터 → 보스(난이도 버튼) → 환산 확인·수정 → 희망 시간(요일 + 시~시) → [매칭하기] → 보스마다 같이 갈 사람 → 약속 시간 → 보스별 파티 저장 (ADR-0012)
+  - 두 번째 캐릭부터는 희망 시간(사람 단위)이 있으면 건너뜀, 완료 화면에 "다음 캐릭터도 신청"
+- 이번 주 일정: 날짜·시각별로 보스별 파티 묶어 표시, 같은 시간대 한 사람이 다른 캐릭으로 들어가면 경고(`lib/conflicts.js`, 2시간 [가정])
+- 캐릭터 탭 맨 위 현황판: 캐릭터 × 보스 (미정/확정/클리어), 전체 지난주 복사
+- 디자인: 크림·주황 테마, 난이도 색 배지, 다크 모드, 제목 글꼴 Jua(next/font)
+- 새 파일: `components/wizard/*`, `Schedule.js`, `Board.js`, `Tabs.js`, `BossName.js`, `lib/hopeTime.js`, `lib/board.js`, `lib/conflicts.js` (+테스트)
+- 안 쓰게 된 컴포넌트 삭제: `Courses.js`, `BossRanking.js`, `Availability.js`, `AvailabilityGrid.js` (사용자 확인)
+- 확인: 테스트 97개, lint·build 통과, 로컬(메모리 + `data/seed.local.json` 테스트 데이터)에서 모바일 폭으로 신청 전체·다캐릭·겹침 경고 확인
+- 미확인: "전체 지난주 복사"의 실제 복사 경로(지난주 데이터가 없어 건너뜀 경로만 확인), 클리어 표시는 기존 데이터 필드만 읽음(클리어 체크 화면 없음)
+- 희망 시간은 요일당 한 구간. 예전 칸 입력으로 하루에 두 구간 있던 사람은 신청 화면에서 다시 저장하면 마지막 구간만 남음
+
+## 배포 상태 (2026-10-08, 9차)
 - Vercel 프로젝트 `maple-boss-scheduler` (`prj_b4ngt059CPSP82coxytB1J6sKec2`, 팀 `team_xHOmrsg1M1GkCp9EAb35uCWN`), 주소 https://maple-boss-scheduler-tau.vercel.app , `main` 자동 배포
 - 코드는 `main`에 합침 (mrkwak/maple-boss-scheduler#1, #2). 작업 브랜치 `claude/gracious-babbage-vmfmq2`도 `main`과 같음
 - 확인됨: 키 없이 접속 → 404, `NEXON_API_KEY` 들어감, 공유 링크 키(`ACCESS_KEY`)는 사용자가 넣음 — 값은 사용자에게 전달했고 문서엔 안 적음
-- **막힌 것: 저장소 미연결.** `/api/health` → `storage: "memory"`, `storageEnv: []`. 운영에서 메모리 저장소는 오류라 `/api/cuts` 등 500
-  - 해결(사용자): 프로젝트 → Storage → Create Database → Upstash for Redis(무료) → Connect(Production·Preview) → Redeploy
-  - 확인: `curl -b mbs_access=<ACCESS_KEY> <주소>/api/health` 에서 `storage: "redis"`
-- 연결 후 할 일(Claude): 보스 기준값 22개를 `PUT /api/cuts` 로 넣기. 값은 로컬 `data/seed.local.json`(깃 제외) 또는 스프레드시트 `[메]파티보스`의 `boss_cuts` 탭. **저장소(리포)에는 커밋 금지**
+- ~~저장소 미연결~~ → 해결(10차): 무료 Upstash 신규 생성 불가(계정당 1개, 추정) → 기존 `upstash-kv-bole-kite` 공유 연결 → Redeploy. `/api/health` → `storage: "redis"` 확인
+- 보스 기준값 22개를 스프레드시트 `boss_cuts` 탭 값으로 `PUT /api/cuts` 완료, 다시 조회해 22개 일치 확인. **저장소(리포)에는 커밋 금지**
   - 바디: `{ "cuts": [{ "bossKey", "baseSpec", "note", "source", "verifiedAt" }] }`, 쿠키 `mbs_access=<ACCESS_KEY>`
 - 이 세션 도구 제약: Vercel 커넥터는 읽기만 됨(프로젝트·스토리지 생성, 환경변수 조회 모두 403). 크롬/브라우저 조작 도구 없음. gcloud 미로그인 → 서비스 계정 생성 불가
 - 대안 저장소: 스프레드시트 `[메]파티보스` (ID `1QOJhMcRblxbIVWhYSSKfQD_EOnT3QP_Td8vEsI4QcIk`)에 탭 8개·헤더·boss_cuts 22행 만들어 둠. 쓰려면 서비스 계정 필요(ADR-0007) — 사용자가 번거롭다고 해서 보류
